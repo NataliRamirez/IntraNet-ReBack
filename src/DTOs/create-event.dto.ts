@@ -1,5 +1,10 @@
 import { IsString, IsNotEmpty, IsOptional, IsDateString, IsUrl } from 'class-validator';
 
+/**
+ * DTO para la creación de eventos.
+ *
+ * Define y valida la información necesaria para registrar un nuevo evento dentro del sistema.
+ */
 export class CreateEventDto {
   @IsString() @IsNotEmpty()
   name: string;
@@ -9,12 +14,13 @@ export class CreateEventDto {
 
   @IsDateString()
   dateTime: string; 
+
   @IsOptional() @IsString()
-  lugar?: string;
+  place?: string;
 
   @IsOptional() @IsUrl()
   link?: string;
 
   @IsOptional() @IsString()
-  imagen?: string; 
+  image?: string; 
 }

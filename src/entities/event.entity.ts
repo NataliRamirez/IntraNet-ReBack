@@ -1,5 +1,11 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
+/**
+ * Entidad que representa un evento dentro del sistema.
+ *
+ * Almacena la información de los eventos publicados en la Intranet, incluyendo detalles, ubicación,
+ * enlaces relacionados e imagen asociada.
+ */
 @Entity('events')
 export class Event {
   @PrimaryGeneratedColumn()

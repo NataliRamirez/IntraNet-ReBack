@@ -1,5 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 
+/**
+ * Entidad que representa una notificación dentro del sistema.
+ *
+ * Permite almacenar alertas relacionadas con noticias y eventos publicados en la Intranet, facilitando
+ * su consulta y seguimiento por parte de los usuarios.
+ */
 @Entity('notifications')
 export class Notification {
   @PrimaryGeneratedColumn()

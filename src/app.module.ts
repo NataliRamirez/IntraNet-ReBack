@@ -3,21 +3,21 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
-import { EventsModule } from './events/events.module';
-import { EmployeeModule } from './modules/employee.module';
-import { NewsModule } from './news/news.module';
-import { NotificationsModule } from './modules/notifications.module';
-import { BirthdayImageModule } from './modules/birthday-image.module';
+import { EventsModule } from '../src/modules/events.module';
+import { EmployeeModule } from '../src/modules/employee.module';
+import { NewsModule } from '../src/modules/news.module';
+import { NotificationsModule } from '../src/modules/notifications.module';
+import { BirthdayImageModule } from '../src/modules/birthday-image.module';
 
 @Module({
   imports: [
-    // 🖼 Servir carpeta "public"
+    // Servir carpeta "public"
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
       exclude: ['/uploads'],
     }),
 
-    // 🖼 Servir carpeta "uploads" (donde guardamos imágenes)
+    // Servir carpeta "uploads" (donde guardamos imágenes)
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads', // <-- Esto hace que sea accesible vía URL

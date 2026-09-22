@@ -10,10 +10,10 @@ import * as path from 'path';
 dotenv.config();
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+ const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // 🌍 CORS — permite acceso desde el frontend
-// 🌍 CORS — permite acceso desde frontend local y producción
+//  CORS — permite acceso desde el frontend
+//  CORS — permite acceso desde frontend local y producción
 app.enableCors({
     origin: [
       'http://localhost:5173',         // Front local (React dev)
@@ -23,13 +23,13 @@ app.enableCors({
     credentials: true,
   });  
 
-  // 📦 Parseo de JSON y formularios grandes
-  app.use(bodyParser.json({ limit: '10mb' }));
-  app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
+ // Parseo de JSON y formularios grandes
+ app.use(bodyParser.json({ limit: '10mb' }));
+ app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
-  // 1. 🚨 RUTA ESTÁTICA FORZADA (Vía Express)
-  // Usamos process.cwd() para obtener la ruta raíz del proyecto (IntraNet-Backend)
-  // Esto es la forma más robusta de servir archivos estáticos con Express.
+ // 1.  RUTA ESTÁTICA FORZADA (Vía Express)
+ // Usamos process.cwd() para obtener la ruta raíz del proyecto (IntraNet-Backend)
+ // Esto es la forma más robusta de servir archivos estáticos con Express.
 
 
 const uploadsPath = path.resolve(__dirname, '..', 'uploads');
@@ -41,10 +41,10 @@ app.use(express.static(publicPath));
 
 app.use((req, res, next) => {
   const apiRoutes = [
-    '/eventos',
+    '/events',
     '/news',
     '/notifications',
-    '/empleados',
+    '/employes',
     '/birthday-image',
     '/uploads',
   ];
@@ -60,12 +60,12 @@ app.use((req, res, next) => {
   res.sendFile(path.join(publicPath, 'index.html'));
 });
 
-  // 🚀 Arranque del servidor
-  const PORT = Number(process.env.PORT) || 3002;
-  const HOST = process.env.HOST || '0.0.0.0'; // permite acceso desde otras PCs
-  await app.listen(PORT, HOST);
+ // Arranque del servidor
+ const PORT = Number(process.env.PORT) || 3002;
+ const HOST = process.env.HOST || '0.0.0.0'; // permite acceso desde otras PCs
+ await app.listen(PORT, HOST);
 
-  console.log(`🚀 Servidor corriendo en http://${HOST}:${PORT}`);
+  console.log(`Servidor corriendo en http://${HOST}:${PORT}`);
 }
 
 bootstrap();

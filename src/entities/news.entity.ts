@@ -1,5 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
+/**
+ * Entidad que representa una noticia publicada dentro del sistema.
+ *
+ * Almacena la información de las noticias visibles en la Intranet, incluyendo título, descripción, contenido, imagen y fechas
+ * de publicación y actualización.
+ */
 @Entity('news')
 export class News {
   @PrimaryGeneratedColumn()
