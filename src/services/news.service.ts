@@ -21,7 +21,7 @@ export class NewsService {
     private readonly newsRepository: Repository<News>,
 
     private readonly notificationsService: NotificationsService,
-  ) {}
+  ) { }
 
   /**
    * Obtiene todas las noticias registradas.
@@ -51,15 +51,15 @@ export class NewsService {
     return neww;
   }
 
-   /**
-   * Crea una nueva noticia en el sistema.
-   *
-   * Después de registrar la noticia, genera automáticamente una notificación para informar a los 
-   * usuarios sobre la nueva publicación.
-   *
-   * @param {CreateNewsDto} data Datos necesarios para crear la noticia.
-   * @returns {Promise<News>} Noticia creada exitosamente.
-   */
+  /**
+  * Crea una nueva noticia en el sistema.
+  *
+  * Después de registrar la noticia, genera automáticamente una notificación para informar a los 
+  * usuarios sobre la nueva publicación.
+  *
+  * @param {CreateNewsDto} data Datos necesarios para crear la noticia.
+  * @returns {Promise<News>} Noticia creada exitosamente.
+  */
   async create(data: CreateNewsDto): Promise<News> {
     const neww = this.newsRepository.create({
       title: data.title,
@@ -91,8 +91,11 @@ export class NewsService {
    * @returns {Promise<News>} Noticia actualizada.
    * @throws {NotFoundException} Si la noticia no existe.
    */
-  async update(id: number, data: UpdateNewsDto) {
+  async update(id: number, data: UpdateNewsDto): Promise<News> {
+    await this.findOne(id);
+
     await this.newsRepository.update(id, data);
+
     return this.findOne(id);
   }
 

@@ -44,7 +44,7 @@ app.use((req, res, next) => {
     '/events',
     '/news',
     '/notifications',
-    '/employes',
+    '/employee',
     '/birthday-image',
     '/uploads',
   ];

@@ -45,5 +45,7 @@ export class BirthdayImageService {
   async saveImageName(filename: string) {
     await fs.writeFile(this.configPath, JSON.stringify({ filename }, null, 2));
     return filename;
+  }catch (error) {
+    throw error;
   }
 }

@@ -31,7 +31,7 @@ export class Notification {
   link?: string;
 
   @Column({ type: 'boolean', default: false })
-  read!: boolean;
+  is_read!: boolean;
 
   @CreateDateColumn({
     name: 'created_at',

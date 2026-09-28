@@ -1,4 +1,4 @@
-import { Controller, Get, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, UploadedFile, UseInterceptors, HttpCode } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -21,6 +21,7 @@ export class BirthdayImageController {
    * @returns Objeto con el nombre del archivo de imagen.
    */
   @Get()
+  @HttpCode(302)
   async getImage() {
     const filename = await this.service.getImageName();
     return { image: filename };
@@ -37,6 +38,7 @@ export class BirthdayImageController {
    * @returns Mensaje de confirmación y nombre del archivo almacenado.
    */
   @Post()
+  @HttpCode(201)
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({

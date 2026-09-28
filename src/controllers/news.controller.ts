@@ -9,6 +9,7 @@ import {
   UploadedFile,
   UseInterceptors,
   NotFoundException,
+  HttpCode
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -34,6 +35,7 @@ export class NewsController {
    * @returns Lista de noticias.
    */
   @Get()
+  @HttpCode(302)
   findAll() {
     return this.newsService.findAll();
   }
@@ -45,6 +47,7 @@ export class NewsController {
    * @returns Información de la noticia encontrada.
    */
   @Get(':id')
+  @HttpCode(302)
   findOne(@Param('id') id: number) {
     return this.newsService.findOne(id);
   }
@@ -59,6 +62,7 @@ export class NewsController {
    * @returns La noticia creada.
    */
   @Post()
+  @HttpCode(201)
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({
@@ -88,6 +92,7 @@ export class NewsController {
    * @returns La noticia actualizada.
    */
   @Patch(':id')
+  @HttpCode(200)
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({
@@ -120,6 +125,7 @@ export class NewsController {
    * @throws NotFoundException Si la noticia no existe.
    */
   @Delete(':id')
+  @HttpCode(200)
   async remove(@Param('id') id: number) {
     const news = await this.newsService.findOne(id);
     if (!news) throw new NotFoundException('Noticia no encontrada');

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notification } from '../entities/notifications.entity';
@@ -14,7 +14,7 @@ export class NotificationsService {
   constructor(
     @InjectRepository(Notification)
     private notificationRepo: Repository<Notification>,
-  ) {}
+  ) { }
 
   /**
    * Crea una nueva notificación en el sistema.
@@ -41,7 +41,7 @@ export class NotificationsService {
     const newNotification = this.notificationRepo.create(data);
     return this.notificationRepo.save(newNotification);
   }
-  
+
   /**
    * Obtiene todas las notificaciones registradas.
    *
@@ -56,16 +56,31 @@ export class NotificationsService {
     });
   }
 
-   /**
-   * Marca una notificación como leída.
-   *
-   * Actualiza el estado de lectura de la notificación correspondiente al identificador recibido.
-   *
-   * @param {number} id Identificador de la notificación.
-   * @returns {Promise<{ message: string }>} Mensaje de confirmación de la operación.
-   */
+  /**
+  * Marca una notificación como leída.
+  *
+  * Actualiza el estado de lectura de la notificación correspondiente al identificador recibido.
+  *
+  * @param {number} id Identificador de la notificación.
+  * @returns {Promise<{ message: string }>} Mensaje de confirmación de la operación.
+  */
   async markAsRead(id: number) {
-    await this.notificationRepo.update(id, { read: true });
-    return { message: `Notification ${id} marked as read` };
+    const notification = await this.notificationRepo.findOne({
+      where: { id },
+    });
+
+    if (!notification) {
+      throw new NotFoundException(
+        `Notificación con ID ${id} no encontrada`,
+      );
+    }
+
+    await this.notificationRepo.update(id, {
+      is_read: true,
+    });
+
+    return {
+      message: `Notificación ${id} marcada como leída`,
+    };
   }
 }

@@ -9,6 +9,7 @@ import {
   UploadedFile,
   UseInterceptors,
   NotFoundException,
+  HttpCode
 } from '@nestjs/common';
 import { EventsService } from '../services/events.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -32,6 +33,7 @@ export class EventsController {
    * @returns Lista de eventos.
    */
   @Get()
+  @HttpCode(302)
   findAll() {
     return this.eventsService.findAll();
   }
@@ -43,6 +45,7 @@ export class EventsController {
    * @returns Información del evento encontrado.
    */
   @Get(':id')
+  @HttpCode(302)
   findOne(@Param('id') id: number) {
     return this.eventsService.findOne(id);
   }
@@ -58,6 +61,7 @@ export class EventsController {
    * @returns Evento creado.
    */
   @Post()
+  @HttpCode(201)
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({
@@ -94,6 +98,7 @@ export class EventsController {
    * @returns Evento actualizado.
    */
   @Put(':id')
+  @HttpCode(200)
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({
@@ -126,6 +131,7 @@ export class EventsController {
    * @throws NotFoundException Si el evento no existe.
    */
   @Delete(':id')
+  @HttpCode(200)
   async remove(@Param('id') id: number) {
     const event = await this.eventsService.findOne(id);
     if (!event) throw new NotFoundException('Evento no encontrado');

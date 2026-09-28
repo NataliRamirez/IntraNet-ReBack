@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, HttpCode } from '@nestjs/common';
 import { NotificationsService } from '../services/notifications.service';
 
 /**
@@ -19,6 +19,7 @@ export class NotificationsController {
    * @returns Lista de notificaciones almacenadas.
    */
   @Get()
+  @HttpCode(302)
   getAll() {
     return this.notificationsService.findAll();
   }
@@ -38,6 +39,7 @@ export class NotificationsController {
    * @returns La notificación creada.
    * */
   @Post()
+  @HttpCode(201)
   create(
     @Body()
     body: {
@@ -60,7 +62,7 @@ export class NotificationsController {
    *
    * @returns La notificación actualizada con estado de lectura.
    */
-  @Patch(':id/read')
+  @Patch(':id/is_read')
   markAsRead(@Param('id') id: number) {
     return this.notificationsService.markAsRead(id);
   }

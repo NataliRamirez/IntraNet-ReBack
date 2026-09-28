@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, Query, HttpCode } from '@nestjs/common';
 import { EmployeeService } from '../services/employee.service';
 import { CreateEmployeeDto } from '../DTOs/create-employee.dto';
 import { UpdateEmployeeDto } from '../DTOs/update-employee.dto';
@@ -8,7 +8,7 @@ import { UpdateEmployeeDto } from '../DTOs/update-employee.dto';
  *
  * Permite crear, consultar, actualizar, eliminar y filtrar empleados por nombre.
  */
-@Controller('empleados')
+@Controller('employee')
 export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
 
@@ -22,6 +22,7 @@ export class EmployeeController {
    * @returns Lista completa o filtrada de empleados.
    */
   @Get()
+  @HttpCode(302)
   findAll(@Query('name') name?: string) {
     if (name) {
       return this.employeeService.findByName(name);
@@ -36,6 +37,7 @@ export class EmployeeController {
    * @returns Información del empleado encontrado.
    */
   @Get(':id')
+  @HttpCode(302)
   findOne(@Param('id') id: number) {
     return this.employeeService.findOne(id);
   }
@@ -47,6 +49,7 @@ export class EmployeeController {
    * @returns Empleado creado.
    */
   @Post()
+  @HttpCode(201)
   create(@Body() dto: CreateEmployeeDto) {
     return this.employeeService.create(dto);
   }
@@ -59,6 +62,7 @@ export class EmployeeController {
    * @returns Empleado actualizado.
    */
   @Put(':id')
+  @HttpCode(200)
   update(@Param('id') id: number, @Body() dto: UpdateEmployeeDto) {
     return this.employeeService.update(id, dto);
   }
@@ -70,6 +74,7 @@ export class EmployeeController {
    * @returns Confirmación de la eliminación.
    */
   @Delete(':id')
+  @HttpCode(200)
   remove(@Param('id') id: number) {
     return this.employeeService.remove(id);
   }
