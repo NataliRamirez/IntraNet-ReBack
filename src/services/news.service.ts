@@ -46,9 +46,9 @@ export class NewsService {
    * @throws {NotFoundException} Si la noticia no existe.
    */
   async findOne(id: number) {
-    const new = await this.newsRepository.findOne({ where: { id } });
-    if (!new) throw new NotFoundException('Noticia no encontrada');
-    return new;
+    const neww = await this.newsRepository.findOne({ where: { id } });
+    if (!neww) throw new NotFoundException('Noticia no encontrada');
+    return neww;
   }
 
    /**
@@ -61,7 +61,7 @@ export class NewsService {
    * @returns {Promise<News>} Noticia creada exitosamente.
    */
   async create(data: CreateNewsDto): Promise<News> {
-    const new = this.newsRepository.create({
+    const neww = this.newsRepository.create({
       title: data.title,
       shortDesc: data.shortDesc,
       content: data.content,
@@ -69,7 +69,7 @@ export class NewsService {
       publicationDate: data.publicationDate,
     });
 
-    const saved = await this.newsRepository.save(new);
+    const saved = await this.newsRepository.save(neww);
 
     // 🛎️ Crear notificación
     await this.notificationsService.create({

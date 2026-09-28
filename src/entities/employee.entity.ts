@@ -6,7 +6,7 @@ import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
  * Almacena la información básica de los colaboradores registrados en la Intranet, incluyendo datos personales
  * y laborales.
  */
-@Entity('employes')
+@Entity('employee')
 export class Employee {
 
   @PrimaryGeneratedColumn()

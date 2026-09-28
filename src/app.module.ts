@@ -3,11 +3,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
-import { EventsModule } from '../src/modules/events.module';
-import { EmployeeModule } from '../src/modules/employee.module';
-import { NewsModule } from '../src/modules/news.module';
-import { NotificationsModule } from '../src/modules/notifications.module';
-import { BirthdayImageModule } from '../src/modules/birthday-image.module';
+import { EventsModule } from './modules/events.module';
+import { EmployeeModule } from './modules/employee.module';
+import { NewsModule } from './modules/news.module';
+import { NotificationsModule } from './modules/notifications.module';
+import { BirthdayImageModule } from './modules/birthday-image.module';
 
 @Module({
   imports: [
@@ -25,12 +25,12 @@ import { BirthdayImageModule } from '../src/modules/birthday-image.module';
 
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: process.env.DB_HOST || 'localhost',
-      port: +(process.env.DB_PORT || 3306),
-      username: process.env.DB_USER || 'root',
-      password: process.env.DB_PASS || 'emca',
-      database: process.env.DB_NAME || 'intranet_db',
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      host: 'localhost',
+      port: 3306,
+      username: 'root',
+      password: 'Planeación2026**',
+      database: 'intranet_db',
+      autoLoadEntities: true,
       synchronize: false,
     }),
 
