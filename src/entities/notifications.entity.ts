@@ -8,27 +8,35 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeor
  */
 @Entity('notifications')
 export class Notification {
+
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
-  @Column()
-  type: 'news' | 'event';
+  @Column({
+    type: 'enum',
+    enum: ['news', 'event'],
+  })
+  type!: 'news' | 'event';
 
-  @Column()
-  reference_id: number;
+  @Column({ type: 'int' })
+  reference_id!: number;
 
-  @Column()
-  title: string;
+  @Column({ type: 'varchar', length: 255 })
+  title!: string;
 
-  @Column()
-  message: string;
+  @Column({ type: 'text' })
+  message!: string;
 
-  @Column({ nullable: true })
-  link: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  link?: string;
 
-  @Column({ default: false })
-  read: boolean;
+  @Column({ type: 'boolean', default: false })
+  read!: boolean;
 
-  @CreateDateColumn()
-  created_at: Date;
+  @CreateDateColumn({
+    name: 'created_at',
+    type: 'datetime',
+  })
+  createdAt!: Date;
+
 }

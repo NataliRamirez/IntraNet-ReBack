@@ -66,11 +66,11 @@ export class EmployeeService {
    * @returns {Promise<Employee>} Empleado creado exitosamente.
    */
   async create(dto: CreateEmployeeDto): Promise<Employee> {
-    const new = this.employeeRepository.create({
+    const neww = this.employeeRepository.create({
       ...dto,
       birthday: new Date(dto.birthday),
     });
-    return await this.employeeRepository.save(new);
+    return await this.employeeRepository.save(neww);
   }
 
    /**

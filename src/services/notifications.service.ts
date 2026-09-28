@@ -52,7 +52,7 @@ export class NotificationsService {
    */
   async findAll() {
     return this.notificationRepo.find({
-      order: { created_at: 'DESC' },
+      order: { createdAt: 'DESC' },
     });
   }
 

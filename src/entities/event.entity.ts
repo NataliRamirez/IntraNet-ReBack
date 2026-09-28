@@ -8,34 +8,41 @@ import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
  */
 @Entity('events')
 export class Event {
+
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ type: 'varchar', length: 255 })
-  name: string;
+  name!: string;
 
   @Column({ type: 'text' })
-  description: string;
+  description!: string;
 
   @Column({ type: 'datetime' })
-  dateTime: Date;
+  dateTime!: Date;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  place: string;
+  place!: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  link: string;
-  
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  image: string;
+  link!: string;
 
-  @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
-  create: Date;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  image!: string;
 
   @Column({
+    name: 'created_at',
+    type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  createdAt!: Date;
+
+  @Column({
+    name: 'updated_at',
     type: 'datetime',
     default: () => 'CURRENT_TIMESTAMP',
     onUpdate: 'CURRENT_TIMESTAMP',
   })
-  updated: Date;
+  updatedAt!: Date;
+
 }

@@ -6,21 +6,28 @@ import { IsString, IsNotEmpty, IsOptional, IsDateString, IsUrl } from 'class-val
  * Define y valida la información necesaria para registrar un nuevo evento dentro del sistema.
  */
 export class CreateEventDto {
-  @IsString() @IsNotEmpty()
-  name: string;
 
-  @IsString() @IsNotEmpty()
-  description: string;
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  description!: string;
 
   @IsDateString()
-  dateTime: string; 
+  dateTime!: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   place?: string;
 
-  @IsOptional() @IsUrl()
+  @IsOptional()
+  @IsUrl()
   link?: string;
 
-  @IsOptional() @IsString()
-  image?: string; 
+  @IsOptional()
+  @IsString()
+  image?: string;
+
 }

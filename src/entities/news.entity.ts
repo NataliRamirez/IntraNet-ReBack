@@ -8,31 +8,41 @@ import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
  */
 @Entity('news')
 export class News {
+
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ type: 'varchar', length: 255 })
-  title: string;
+  title!: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ type: 'text', nullable: true })
   shortDesc?: string;
 
+  @Column({ type: 'longtext', nullable: true })
+  content?: string;
+
   @Column({ type: 'text' })
-  content: string;
+  description!: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   image?: string;
 
   @Column({ type: 'datetime' })
-  publicationDate: Date;
-
-  @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date;
+  publicationDate!: Date;
 
   @Column({
+    name: 'created_at',
+    type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  createdAt!: Date;
+
+  @Column({
+    name: 'updated_at',
     type: 'datetime',
     default: () => 'CURRENT_TIMESTAMP',
     onUpdate: 'CURRENT_TIMESTAMP',
   })
-  updatedAt: Date;
+  updatedAt!: Date;
+
 }

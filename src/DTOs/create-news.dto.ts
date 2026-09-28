@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 /**
  * DTO utilizado para la creación de notificaciones.
@@ -6,22 +6,28 @@ import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
  * Contiene la información necesaria para registrar una notificación relacionada con una noticia o un evento dentro del sistema.
  */
 export class CreateNewsDto {
-  @IsString()
-  @IsNotEmpty()
-  title: string;
 
   @IsString()
   @IsNotEmpty()
-  shortDesc: string;
+  title!: string;
+
+  @IsOptional()
+  @IsString()
+  shortDesc?: string;
 
   @IsString()
   @IsNotEmpty()
-  content: string;
+  content!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  description!: string;
 
   @IsOptional()
   @IsString()
   image?: string;
 
-  @IsNotEmpty()
-  publicationDate: Date;
+  @IsDateString()
+  publicationDate!: string;
+
 }
