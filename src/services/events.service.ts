@@ -31,7 +31,7 @@ export class EventsService {
    * Lista de eventos registrados.
    */
   findAll() {
-    return this.repo.find({ order: { dateTime: 'DESC' } });
+    return this.repo.find({ order: { date_time: 'DESC' } });
   }
 
    /**

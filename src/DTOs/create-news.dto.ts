@@ -13,7 +13,7 @@ export class CreateNewsDto {
 
   @IsOptional()
   @IsString()
-  shortDesc?: string;
+  short_desc?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -28,6 +28,6 @@ export class CreateNewsDto {
   image?: string;
 
   @IsDateString()
-  publicationDate!: string;
+  publication_date!: string;
 
 }

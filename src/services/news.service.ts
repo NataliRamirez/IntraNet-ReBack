@@ -32,7 +32,7 @@ export class NewsService {
    */
   async findAll() {
     return this.newsRepository.find({
-      order: { publicationDate: 'DESC' },
+      order: { publication_date: 'DESC' },
     });
   }
 
@@ -63,10 +63,11 @@ export class NewsService {
   async create(data: CreateNewsDto): Promise<News> {
     const neww = this.newsRepository.create({
       title: data.title,
-      shortDesc: data.shortDesc,
+      short_desc: data.short_desc,
       content: data.content,
+      description: data.description,
       image: data.image || undefined,
-      publicationDate: data.publicationDate,
+      publication_date: data.publication_date,
     });
 
     const saved = await this.newsRepository.save(neww);

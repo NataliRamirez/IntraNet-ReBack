@@ -15,27 +15,41 @@ export class News {
   @Column({ type: 'varchar', length: 255 })
   title!: string;
 
-  @Column({ type: 'text', nullable: true })
-  shortDesc?: string;
+  @Column({
+    name: 'short_desc',
+    type: 'text',
+    nullable: true,
+  })
+  short_desc?: string;
 
-  @Column({ type: 'longtext', nullable: true })
+  @Column({
+    type: 'longtext',
+    nullable: true,
+  })
   content?: string;
 
   @Column({ type: 'text' })
   description!: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   image?: string;
 
-  @Column({ type: 'datetime' })
-  publicationDate!: Date;
+  @Column({
+    name: 'publication_date',
+    type: 'datetime',
+  })
+  publication_date!: Date;
 
   @Column({
     name: 'created_at',
     type: 'datetime',
     default: () => 'CURRENT_TIMESTAMP',
   })
-  createdAt!: Date;
+  created_at!: Date;
 
   @Column({
     name: 'updated_at',
@@ -44,5 +58,4 @@ export class News {
     onUpdate: 'CURRENT_TIMESTAMP',
   })
   updatedAt!: Date;
-
 }

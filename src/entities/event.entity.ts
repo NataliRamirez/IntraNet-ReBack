@@ -19,7 +19,7 @@ export class Event {
   description!: string;
 
   @Column({ type: 'datetime' })
-  dateTime!: Date;
+  date_time!: Date;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   place!: string;
