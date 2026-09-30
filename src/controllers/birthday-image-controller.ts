@@ -2,7 +2,7 @@ import { Controller, Get, Post, UploadedFile, UseInterceptors, HttpCode } from '
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import { BirthdayImageService } from '../services/birthday-image.service';
+import { BirthdayImageService } from '../services/birthdayImage-service';
 
 /**
  * Controlador encargado de gestionar la imagen de cumpleaños

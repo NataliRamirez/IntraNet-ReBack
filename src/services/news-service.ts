@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { News } from '../entities/news.entity';
-import { CreateNewsDto } from '../DTOs/create-news.dto';
-import { UpdateNewsDto } from '../DTOs/update-news.dto';
-import { NotificationsService } from './notifications.service';
+import { News } from '../entities/news-entity';
+import { CreateNewsDto } from '../DTOs/create-news-dto';
+import { UpdateNewsDto } from '../DTOs/update-news-dto';
+import { NotificationsService } from './notifications-service';
 
 /**
  * Servicio encargado de la gestión de noticias.

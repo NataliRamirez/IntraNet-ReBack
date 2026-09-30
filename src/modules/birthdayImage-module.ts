@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { BirthdayImageController } from '../controllers/birthday-image.controller';
-import { BirthdayImageService } from '../services/birthday-image.service';
+import { BirthdayImageController } from '../controllers/birthday-image-controller';
+import { BirthdayImageService } from '../services/birthdayImage-service';
 
 /**
  * Módulo encargado de la gestión de imágenes de cumpleaños.

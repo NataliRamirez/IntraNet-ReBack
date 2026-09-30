@@ -11,12 +11,12 @@ import {
   NotFoundException,
   HttpCode
 } from '@nestjs/common';
-import { EventsService } from '../services/events.service';
+import { EventsService } from '../services/events-service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import { CreateEventDto } from '../DTOs/create-event.dto';
-import { UpdateEventDto } from '../DTOs/update-event.dto';
+import { CreateEventDto } from '../DTOs/create-event-dto';
+import { UpdateEventDto } from '../DTOs/update-event-dto';
 
 /**
  * Controlador encargado de gestionar las operaciones relacionadas con los eventos de la Intranet.

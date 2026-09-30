@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Param, Patch, HttpCode } from '@nestjs/common';
-import { NotificationsService } from '../services/notifications.service';
+import { NotificationsService } from '../services/notifications-service';
 
 /**
  * Controlador encargado de la gestión de notificaciones del sistema.

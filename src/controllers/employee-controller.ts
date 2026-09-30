@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param, Delete, Put, Query, HttpCode } from '@nestjs/common';
-import { EmployeeService } from '../services/employee.service';
-import { CreateEmployeeDto } from '../DTOs/create-employee.dto';
-import { UpdateEmployeeDto } from '../DTOs/update-employee.dto';
+import { EmployeeService } from '../services/employee-service';
+import { CreateEmployeeDto } from '../DTOs/create-employee-dto';
+import { UpdateEmployeeDto } from '../DTOs/update-employee-dto';
 
 /**
  * Controlador encargado de gestionar las operaciones relacionadas con los empleados de la organización.

@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
-import { Employee } from '../entities/employee.entity';
-import { CreateEmployeeDto } from '../DTOs/create-employee.dto';
-import { UpdateEmployeeDto } from '../DTOs/update-employee.dto';
+import { Employee } from '../entities/employee-entity';
+import { CreateEmployeeDto } from '../DTOs/create-employee-dto';
+import { UpdateEmployeeDto } from '../DTOs/update-employee-dto';
 import { ConflictException } from '@nestjs/common';
 
 /**

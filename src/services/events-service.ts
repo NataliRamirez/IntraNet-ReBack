@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Event } from '../entities/event.entity';
-import { CreateEventDto } from '../DTOs/create-event.dto';
-import { UpdateEventDto } from '../DTOs/update-event.dto';
-import { NotificationsService } from './notifications.service';
+import { Event } from '../entities/event-entity';
+import { CreateEventDto } from '../DTOs/create-event-dto';
+import { UpdateEventDto } from '../DTOs/update-event-dto';
+import { NotificationsService } from './notifications-service';
 
 /**
  * Servicio encargado de la gestión de eventos.

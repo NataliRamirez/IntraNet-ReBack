@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { CreateNewsDto } from '../DTOs/create-news.dto';
+import { CreateNewsDto } from './create-news-dto';
 
 /**
  * DTO para la actualización de noticias.

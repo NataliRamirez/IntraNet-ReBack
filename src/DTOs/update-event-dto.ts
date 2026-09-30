@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { CreateEventDto } from '../DTOs/create-event.dto';
+import { CreateEventDto } from './create-event-dto';
 
 /**
  * DTO utilizado para la actualización de eventos.

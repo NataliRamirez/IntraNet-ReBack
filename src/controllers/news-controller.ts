@@ -14,9 +14,9 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import { NewsService } from '../services/news.service';
-import { CreateNewsDto } from '../DTOs/create-news.dto';
-import { UpdateNewsDto } from '../DTOs/update-news.dto';
+import { NewsService } from '../services/news-service';
+import { CreateNewsDto } from '../DTOs/create-news-dto';
+import { UpdateNewsDto } from '../DTOs/update-news-dto';
 
 /**
  * Controlador encargado de la gestión de noticias.
