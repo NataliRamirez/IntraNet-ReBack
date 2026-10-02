@@ -9,7 +9,6 @@ import { AuthService } from '../services/auth-service';
 
 @Controller('auth')
 export class AuthController {
-
   constructor(
     private readonly authService: AuthService,
   ) {}
@@ -22,11 +21,11 @@ export class AuthController {
       password: string;
     },
   ) {
-
-    const user = await this.authService.validateUser(
-      body.email,
-      body.password,
-    );
+    const user =
+      await this.authService.validateUser(
+        body.email,
+        body.password,
+      );
 
     if (!user) {
       throw new UnauthorizedException(

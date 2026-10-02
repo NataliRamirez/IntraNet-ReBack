@@ -1,19 +1,21 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
 import { News } from '../entities/news-entity';
+
 import { CreateNewsDto } from '../DTOs/create-news-dto';
 import { UpdateNewsDto } from '../DTOs/update-news-dto';
+
 import { NotificationsService } from './notifications-service';
 
-/**
- * Servicio encargado de la gestión de noticias.
- *
- * Proporciona la lógica de negocio necesaria para administrar las noticias publicadas en la Intranet, 
- * incluyendo operaciones de consulta, creación, actualización y eliminación.
- *
- * Además, genera automáticamente una notificación cuando se publica una nueva noticia para informar a los usuarios.
- */
+import { NotificationAction } from '../enums/notification-action.enum';
+import { NotificationEntity } from '../enums/notification-entity.enum';
+
 @Injectable()
 export class NewsService {
   constructor(
@@ -21,97 +23,172 @@ export class NewsService {
     private readonly newsRepository: Repository<News>,
 
     private readonly notificationsService: NotificationsService,
-  ) { }
+  ) {}
 
-  /**
-   * Obtiene todas las noticias registradas.
-   *
-   * Los resultados se ordenan de forma descendente según la fecha de publicación.
-   *
-   * @returns {Promise<News[]>} Lista de noticias registradas.
-   */
+  // =====================================================
+  // OBTENER TODAS
+  // =====================================================
+
   async findAll() {
     return this.newsRepository.find({
-      order: { publication_date: 'DESC' },
+      order: {
+        publication_date: 'DESC',
+      },
     });
   }
 
-  /**
-   * Obtiene una noticia específica mediante su identificador.
-   *
-   * @param {number} id Identificador único de la noticia.
-   *
-   * @returns {Promise<News>} Información de la noticia encontrada.
-   *
-   * @throws {NotFoundException} Si la noticia no existe.
-   */
+  // =====================================================
+  // OBTENER UNA
+  // =====================================================
+
   async findOne(id: number) {
-    const neww = await this.newsRepository.findOne({ where: { id } });
-    if (!neww) throw new NotFoundException('Noticia no encontrada');
-    return neww;
+    const news =
+      await this.newsRepository.findOne({
+        where: {
+          id,
+        },
+      });
+
+    if (!news) {
+      throw new NotFoundException(
+        'No se encontró la noticia',
+      );
+    }
+
+    return news;
   }
 
-  /**
-  * Crea una nueva noticia en el sistema.
-  *
-  * Después de registrar la noticia, genera automáticamente una notificación para informar a los 
-  * usuarios sobre la nueva publicación.
-  *
-  * @param {CreateNewsDto} data Datos necesarios para crear la noticia.
-  * @returns {Promise<News>} Noticia creada exitosamente.
-  */
-  async create(data: CreateNewsDto): Promise<News> {
-    const neww = this.newsRepository.create({
-      title: data.title,
-      short_desc: data.short_desc,
-      content: data.content,
-      description: data.description,
-      image: data.image || undefined,
-      publication_date: data.publication_date,
-    });
+  // =====================================================
+  // CREAR
+  // =====================================================
 
-    const saved = await this.newsRepository.save(neww);
+  async create(
+    createNewsDto: CreateNewsDto,
+    actorUser: any,
+  ) {
+    const news =
+      this.newsRepository.create(
+        createNewsDto,
+      );
 
-    // 🛎️ Crear notificación
-    await this.notificationsService.create({
-      type: 'news',
-      reference_id: saved.id,
-      title: 'Nueva noticia publicada',
-      message: data.title,
-      link: `/news/${saved.id}`,
-    });
+    const savedNews =
+      await this.newsRepository.save(news);
 
-    return saved;
+    // Crear notificaciones para administradores
+    await this.notificationsService.create(
+      actorUser.id,
+
+      NotificationEntity.NEWS,
+
+      NotificationAction.CREATED,
+
+      savedNews.id,
+
+      savedNews.title,
+
+      `/news/${savedNews.id}`,
+    );
+
+    return savedNews;
   }
 
-  /**
-   * Actualiza la información de una noticia existente.
-   *
-   * @param {number} id Identificador de la noticia.
-   * @param {UpdateNewsDto} data Datos que serán actualizados.
-   * @returns {Promise<News>} Noticia actualizada.
-   * @throws {NotFoundException} Si la noticia no existe.
-   */
-  async update(id: number, data: UpdateNewsDto): Promise<News> {
-    await this.findOne(id);
+  // =====================================================
+  // EDITAR
+  // =====================================================
 
-    await this.newsRepository.update(id, data);
+  async update(
+    id: number,
+    updateNewsDto: UpdateNewsDto,
+    actorUser: any,
+  ) {
+    const news =
+      await this.newsRepository.findOne({
+        where: {
+          id,
+        },
+      });
 
-    return this.findOne(id);
+    if (!news) {
+      throw new NotFoundException(
+        'No se encontró la noticia',
+      );
+    }
+
+    Object.assign(
+      news,
+      updateNewsDto,
+    );
+
+    const updatedNews =
+      await this.newsRepository.save(
+        news,
+      );
+
+    // Crear notificación
+    await this.notificationsService.create(
+      actorUser.id,
+
+      NotificationEntity.NEWS,
+
+      NotificationAction.UPDATED,
+
+      updatedNews.id,
+
+      updatedNews.title,
+
+      `/news/${updatedNews.id}`,
+    );
+
+    return updatedNews;
   }
 
-  /**
-   * Elimina una noticia del sistema.
-   *
-   * Verifica previamente que la noticia exista antes de ejecutar la eliminación.
-   *
-   * @param {number} id Identificador de la noticia a eliminar.
-   * @returns {Promise<{ message: string }>} Mensaje de confirmación de la operación.
-   * @throws {NotFoundException} Si la noticia no existe.
-   */
-  async remove(id: number) {
-    const news = await this.findOne(id);
-    await this.newsRepository.delete(news.id);
-    return { message: 'Noticia eliminada correctamente' };
+  // =====================================================
+  // ELIMINAR
+  // =====================================================
+
+  async remove(
+    id: number,
+    actorUser: any,
+  ) {
+    const news =
+      await this.newsRepository.findOne({
+        where: {
+          id,
+        },
+      });
+
+    if (!news) {
+      throw new NotFoundException(
+        'No se encontró la noticia',
+      );
+    }
+
+    // Guardamos estos datos antes de eliminar
+    const newsId = news.id;
+    const newsTitle = news.title;
+
+    await this.newsRepository.remove(
+      news,
+    );
+
+    // Crear notificación después de eliminar
+    await this.notificationsService.create(
+      actorUser.id,
+
+      NotificationEntity.NEWS,
+
+      NotificationAction.DELETED,
+
+      newsId,
+
+      newsTitle,
+
+      '/news',
+    );
+
+    return {
+      message:
+        'Noticia eliminada correctamente',
+    };
   }
 }

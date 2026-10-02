@@ -1,58 +1,67 @@
 import {
   Controller,
+  Delete,
   Get,
-  Patch,
   Param,
-  HttpCode,
+  Patch,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 
 import { NotificationsService } from '../services/notifications-service';
 
-/**
- * Controlador encargado de la consulta y actualización
- * de las notificaciones del sistema.
- *
- * Las notificaciones pueden ser consultadas por todos
- * los usuarios, estén autenticados o no.
- *
- * Las notificaciones no se crean directamente mediante
- * este controlador. Son generadas automáticamente por
- * los módulos de Noticias y Eventos.
- */
+import { JwtAuthGuard } from '../guards/jwt-auth-guard';
+
 @Controller('notifications')
 export class NotificationsController {
-
   constructor(
     private readonly notificationsService: NotificationsService,
   ) {}
 
-  /**
-   * Obtiene todas las notificaciones registradas.
-   *
-   * Disponible para todos los usuarios.
-   *
-   * Endpoint:
-   * GET /notifications
-   */
-  @Get()
-  @HttpCode(200)
-  getAll() {
+  // ==========================================
+  // PÚBLICO
+  // ==========================================
 
+  @Get()
+  async findAll() {
     return this.notificationsService.findAll();
   }
 
-  /**
-   * Marca una notificación como leída.
-   *
-   * Endpoint:
-   * PATCH /notifications/:id/is_read
-   */
-  @Patch(':id/is_read')
-  @HttpCode(200)
-  markAsRead(
-    @Param('id') id: number,
-  ) {
+  // ==========================================
+  // USUARIOS AUTENTICADOS
+  // ==========================================
 
-    return this.notificationsService.markAsRead(id);
+  @Patch(':id/is_read')
+  @UseGuards(JwtAuthGuard)
+  async markAsRead(
+    @Param('id') id: string,
+    @Req() req: any,
+  ) {
+    return this.notificationsService.markAsRead(
+      Number(id),
+      req.user.id,
+    );
+  }
+
+  @Patch('read-all')
+  @UseGuards(JwtAuthGuard)
+  async markAllAsRead(
+    @Req() req: any,
+  ) {
+    return this.notificationsService.markAllAsRead(
+      req.user.id,
+    );
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  async remove(
+    @Param('id') id: string,
+    @Req() req: any,
+  ) {
+    return this.notificationsService.remove(
+      Number(id),
+      req.user.id,
+    );
   }
 }

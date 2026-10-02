@@ -1,102 +1,196 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
 import { Event } from '../entities/event-entity';
+
 import { CreateEventDto } from '../DTOs/create-event-dto';
 import { UpdateEventDto } from '../DTOs/update-event-dto';
+
 import { NotificationsService } from './notifications-service';
 
-/**
- * Servicio encargado de la gestión de eventos.
- *
- * Proporciona la lógica de negocio necesaria para administrar los eventos publicados en la Intranet, 
- * incluyendo operaciones de consulta, creación, actualización y eliminación.
- *
- * Además, genera automáticamente una notificación cuando se registra un nuevo evento en el sistema.
- */
+import { NotificationAction } from '../enums/notification-action.enum';
+import { NotificationEntity } from '../enums/notification-entity.enum';
+
 @Injectable()
 export class EventsService {
   constructor(
     @InjectRepository(Event)
-    private readonly repo: Repository<Event>,
-    private readonly notificationsService: NotificationsService,
-  ) { }
+    private readonly eventsRepository: Repository<Event>,
 
-  /**
-   * Obtiene todos los eventos registrados.
-   *
-   * Los resultados se ordenan de forma descendente según la fecha y hora del evento.
-   *
-   * @returns {Promise<Event[]>}
-   * Lista de eventos registrados.
-   */
-  findAll() {
-    return this.repo.find({ order: { date_time: 'DESC' } });
+    private readonly notificationsService: NotificationsService,
+  ) {}
+
+  // =====================================================
+  // OBTENER TODOS
+  // =====================================================
+
+  async findAll() {
+    return this.eventsRepository.find({
+      order: {
+        date_time: 'ASC',
+      },
+    });
   }
 
-  /**
-  * Obtiene un evento específico mediante su identificador.
-  *
-  * @param {number} id Identificador único del evento.
-  * @returns {Promise<Event>} Información del evento encontrado.
-  * @throws {NotFoundException} Si el evento no existe.
-  */
+  // =====================================================
+  // OBTENER UNO
+  // =====================================================
+
   async findOne(id: number) {
-    const event = await this.repo.findOne({ where: { id } });
-    if (!event) throw new NotFoundException('Evento no encontrado');
+    const event =
+      await this.eventsRepository.findOne({
+        where: {
+          id,
+        },
+      });
+
+    if (!event) {
+      throw new NotFoundException(
+        'No se encontró el evento',
+      );
+    }
+
     return event;
   }
 
-  /**
-   * Crea un nuevo evento en el sistema.
-   *
-   * Después de registrar el evento, genera automáticamente una notificación para informar a los 
-   * usuarios sobre la nueva actividad programada.
-   *
-   * @param {CreateEventDto} dto Datos necesarios para crear el evento.
-   * @returns {Promise<Event>} Evento creado exitosamente.
-   */
-  async create(dto: CreateEventDto) {
-    const saved = await this.repo.save(this.repo.create(dto));
+  // =====================================================
+  // CREAR
+  // =====================================================
 
-    await this.notificationsService.create({
-      type: 'event',
-      reference_id: saved.id,
-      title: 'Nuevo evento programado',
-      message: dto.name,
-    });
+  async create(
+    createEventDto: CreateEventDto,
+    actorUser: any,
+  ) {
+    const event =
+      this.eventsRepository.create(
+        createEventDto,
+      );
 
-    return saved;
+    const savedEvent =
+      await this.eventsRepository.save(
+        event,
+      );
+
+    // Crear notificaciones para administradores
+    await this.notificationsService.create(
+      actorUser.id,
+
+      NotificationEntity.EVENT,
+
+      NotificationAction.CREATED,
+
+      savedEvent.id,
+
+      savedEvent.name,
+
+      `/events/${savedEvent.id}`,
+    );
+
+    return savedEvent;
   }
 
-  /**
-  * Actualiza la información de un evento existente.
-  *
-  * Verifica previamente la existencia del evento antes de realizar la actualización.
-  *
-  * @param {number} id Identificador del evento.
-  * @param {UpdateEventDto} dto Datos que serán actualizados.
-  * @returns {Promise<Event>} Evento actualizado.
-  * @throws {NotFoundException} Si el evento no existe.
-  */
-  async update(id: number, dto: UpdateEventDto) {
-    await this.findOne(id);
-    await this.repo.update(id, dto);
-    return this.findOne(id);
+  // =====================================================
+  // EDITAR
+  // =====================================================
+
+  async update(
+    id: number,
+    updateEventDto: UpdateEventDto,
+    actorUser: any,
+  ) {
+    const event =
+      await this.eventsRepository.findOne({
+        where: {
+          id,
+        },
+      });
+
+    if (!event) {
+      throw new NotFoundException(
+        'No se encontró el evento',
+      );
+    }
+
+    Object.assign(
+      event,
+      updateEventDto,
+    );
+
+    const updatedEvent =
+      await this.eventsRepository.save(
+        event,
+      );
+
+    // Crear notificación
+    await this.notificationsService.create(
+      actorUser.id,
+
+      NotificationEntity.EVENT,
+
+      NotificationAction.UPDATED,
+
+      updatedEvent.id,
+
+      updatedEvent.name,
+
+      `/events/${updatedEvent.id}`,
+    );
+
+    return updatedEvent;
   }
 
-  /**
-  * Elimina un evento del sistema.
-  *
-  * Verifica previamente que el evento exista antes de ejecutar la eliminación.
-  *
-  * @param {number} id Identificador del evento a eliminar.
-  * @returns {Promise<{ deleted: boolean }>} Resultado de la operación de eliminación.
-  * @throws {NotFoundException} Si el evento no existe.
-  */
-  async remove(id: number) {
-    await this.findOne(id);
-    await this.repo.delete(id);
-    return { deleted: true };
+  // =====================================================
+  // ELIMINAR
+  // =====================================================
+
+  async remove(
+    id: number,
+    actorUser: any,
+  ) {
+    const event =
+      await this.eventsRepository.findOne({
+        where: {
+          id,
+        },
+      });
+
+    if (!event) {
+      throw new NotFoundException(
+        'No se encontró el evento',
+      );
+    }
+
+    // Guardamos los datos antes de eliminar
+    const eventId = event.id;
+    const eventName = event.name;
+
+    await this.eventsRepository.remove(
+      event,
+    );
+
+    // Crear notificación después de eliminar
+    await this.notificationsService.create(
+      actorUser.id,
+
+      NotificationEntity.EVENT,
+
+      NotificationAction.DELETED,
+
+      eventId,
+
+      eventName,
+
+      '/events',
+    );
+
+    return {
+      message:
+        'Evento eliminado correctamente',
+    };
   }
 }

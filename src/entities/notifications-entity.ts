@@ -1,42 +1,96 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { NotificationAction } from '../enums/notification-action.enum';
+import { NotificationEntity } from '../enums/notification-entity.enum';
 
-/**
- * Entidad que representa una notificación dentro del sistema.
- *
- * Permite almacenar alertas relacionadas con noticias y eventos publicados en la Intranet, facilitando
- * su consulta y seguimiento por parte de los usuarios.
- */
+import { Users } from './users-entity';
+
 @Entity('notifications')
-export class Notification {
-
+export class Notifications {
   @PrimaryGeneratedColumn()
   id!: number;
 
   @Column({
-    type: 'enum',
-    enum: ['news', 'event'],
+    type: 'int',
   })
-  type!: 'news' | 'event';
+  user_id!: number;
 
-  @Column({ type: 'int' })
+  @Column({
+    type: 'int',
+  })
+  actor_user_id!: number;
+
+  @Column({
+    type: 'enum',
+    enum: NotificationEntity,
+  })
+  entity_type!: NotificationEntity;
+
+  @Column({
+    type: 'enum',
+    enum: NotificationAction,
+  })
+  action!: NotificationAction;
+  
+  @Column({
+    type: 'int',
+  })
   reference_id!: number;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({
+    type: 'varchar',
+    length: 255,
+  })
   title!: string;
 
-  @Column({ type: 'text' })
+  @Column({
+    type: 'text',
+  })
   message!: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  link?: string;
+  @Column({
+    type: 'varchar',
+    length: 500,
+    nullable: true,
+  })
+  link!: string | null;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
   is_read!: boolean;
 
-  @CreateDateColumn({
-    name: 'created_at',
+  @Column({
     type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP',
   })
-  createdAt!: Date;
+  created_at!: Date;
 
+  @ManyToOne(
+    () => Users,
+    {
+      onDelete: 'CASCADE',
+    },
+  )
+  @JoinColumn({
+    name: 'user_id',
+  })
+  user!: Users;
+
+  @ManyToOne(
+    () => Users,
+    {
+      onDelete: 'CASCADE',
+    },
+  )
+  @JoinColumn({
+    name: 'actor_user_id',
+  })
+  actor!: Users;
 }

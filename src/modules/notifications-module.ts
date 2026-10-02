@@ -1,27 +1,17 @@
 import { Module } from '@nestjs/common';
-
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { Notification } from '../entities/notifications-entity';
-
-import { NotificationsService } from '../services/notifications-service';
+import { Notifications } from '../entities/notifications-entity';
+import { Users } from '../entities/users-entity';
 
 import { NotificationsController } from '../controllers/notifications-controller';
+import { NotificationsService } from '../services/notifications-service';
 
-/**
- * Módulo encargado de la gestión de notificaciones.
- *
- * Las notificaciones pueden ser consultadas y gestionadas
- * sin requerir autenticación.
- *
- * Este módulo es utilizado por otros módulos como:
- * - NewsModule
- * - EventsModule
- */
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      Notification,
+      Notifications,
+      Users,
     ]),
   ],
 

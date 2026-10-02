@@ -1,79 +1,52 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Param,
   Body,
-  UploadedFile,
-  UseInterceptors,
-  NotFoundException,
-  HttpCode,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 
 import { EventsService } from '../services/events-service';
 
-import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { CreateEventDto } from '../dto/create-event.dto';
+import { UpdateEventDto } from '../dto/update-event.dto';
 
-import { CreateEventDto } from '../DTOs/create-event-dto';
-import { UpdateEventDto } from '../DTOs/update-event-dto';
-
-import { JwtAuthGuard } from '../guards/jwt-auth-guard';
-import { RolesGuard } from '../guards/roles-guard';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles-decorator';
 
-/**
- * Controlador encargado de gestionar los eventos de la Intranet.
- *
- * Consulta de eventos:
- * - Público para todos los usuarios.
- *
- * Gestión de eventos:
- * - ADMINISTRADOR
- * - COMUNICACIONES
- */
 @Controller('events')
 export class EventsController {
-
   constructor(
     private readonly eventsService: EventsService,
   ) {}
 
-  /**
-   * Obtiene la lista completa de eventos.
-   *
-   * Este endpoint es público.
-   */
+  // ==========================================
+  // PÚBLICO
+  // ==========================================
+
   @Get()
-  @HttpCode(200)
-  findAll() {
+  async findAll() {
     return this.eventsService.findAll();
   }
 
-  /**
-   * Obtiene un evento específico.
-   *
-   * Este endpoint es público.
-   */
   @Get(':id')
-  @HttpCode(200)
-  findOne(
-    @Param('id') id: number,
+  async findOne(
+    @Param('id') id: string,
   ) {
-    return this.eventsService.findOne(id);
+    return this.eventsService.findOne(
+      Number(id),
+    );
   }
 
-  /**
-   * Crea un nuevo evento.
-   *
-   * Solo pueden realizar esta operación:
-   * - ADMINISTRADOR
-   * - COMUNICACIONES
-   */
+  // ==========================================
+  // ADMINISTRADOR / COMUNICACIONES
+  // ==========================================
+
   @Post()
   @UseGuards(
     JwtAuthGuard,
@@ -83,58 +56,24 @@ export class EventsController {
     'ADMINISTRADOR',
     'COMUNICACIONES',
   )
-  @HttpCode(201)
-  @UseInterceptors(
-    FileInterceptor('image', {
-      storage: diskStorage({
-        destination: './uploads/events',
-
-        filename: (
-          req,
-          file,
-          cb,
-        ) => {
-
-          const uniqueSuffix =
-            Date.now() +
-            '-' +
-            Math.round(
-              Math.random() * 1e9,
-            );
-
-          cb(
-            null,
-            uniqueSuffix +
-              extname(
-                file.originalname,
-              ),
-          );
-        },
-      }),
-    }),
-  )
-  create(
-    @Body() body: CreateEventDto,
-    @UploadedFile()
-    file?: Express.Multer.File,
+  async create(
+    @Body() createEventDto: CreateEventDto,
+    @Req() req: any,
   ) {
-
-    return this.eventsService.create({
-      ...body,
-      image: file
-        ? file.filename
-        : undefined,
-    });
+    /*
+     * req.user identifica al usuario que
+     * creó el evento.
+     *
+     * EventsService generará las notificaciones
+     * para los administradores.
+     */
+    return this.eventsService.create(
+      createEventDto,
+      req.user,
+    );
   }
 
-  /**
-   * Actualiza un evento existente.
-   *
-   * Solo pueden realizar esta operación:
-   * - ADMINISTRADOR
-   * - COMUNICACIONES
-   */
-  @Put(':id')
+  @Patch(':id')
   @UseGuards(
     JwtAuthGuard,
     RolesGuard,
@@ -143,61 +82,22 @@ export class EventsController {
     'ADMINISTRADOR',
     'COMUNICACIONES',
   )
-  @HttpCode(200)
-  @UseInterceptors(
-    FileInterceptor('image', {
-      storage: diskStorage({
-        destination: './uploads/events',
-
-        filename: (
-          req,
-          file,
-          cb,
-        ) => {
-
-          const uniqueSuffix =
-            Date.now() +
-            '-' +
-            Math.round(
-              Math.random() * 1e9,
-            );
-
-          cb(
-            null,
-            uniqueSuffix +
-              extname(
-                file.originalname,
-              ),
-          );
-        },
-      }),
-    }),
-  )
-  update(
-    @Param('id') id: number,
-    @Body() body: UpdateEventDto,
-    @UploadedFile()
-    file?: Express.Multer.File,
+  async update(
+    @Param('id') id: string,
+    @Body() updateEventDto: UpdateEventDto,
+    @Req() req: any,
   ) {
-
+    /*
+     * req.user identifica quién modificó
+     * el evento.
+     */
     return this.eventsService.update(
-      id,
-      {
-        ...body,
-        image:
-          file?.filename ||
-          body.image,
-      },
+      Number(id),
+      updateEventDto,
+      req.user,
     );
   }
 
-  /**
-   * Elimina un evento.
-   *
-   * Solo pueden realizar esta operación:
-   * - ADMINISTRADOR
-   * - COMUNICACIONES
-   */
   @Delete(':id')
   @UseGuards(
     JwtAuthGuard,
@@ -207,25 +107,19 @@ export class EventsController {
     'ADMINISTRADOR',
     'COMUNICACIONES',
   )
-  @HttpCode(200)
   async remove(
-    @Param('id') id: number,
+    @Param('id') id: string,
+    @Req() req: any,
   ) {
-
-    const event =
-      await this.eventsService.findOne(id);
-
-    if (!event) {
-      throw new NotFoundException(
-        'Evento no encontrado',
-      );
-    }
-
-    await this.eventsService.remove(id);
-
-    return {
-      message:
-        'Evento eliminado correctamente',
-    };
+    /*
+     * Se pasa el usuario porque, aunque el
+     * evento sea eliminado, necesitamos saber
+     * quién realizó la eliminación para crear
+     * la notificación.
+     */
+    return this.eventsService.remove(
+      Number(id),
+      req.user,
+    );
   }
 }
