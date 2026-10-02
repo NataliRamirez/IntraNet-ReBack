@@ -10,6 +10,7 @@ import { AuthService } from '../services/auth-service';
 import { JwtStrategy } from '../strategies/jwt-strategy';
 
 import { Users } from '../entities/users-entity';
+import { Roles } from '../entities/roles-entity';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { Users } from '../entities/users-entity';
 
     TypeOrmModule.forFeature([
       Users,
+      Roles,
     ]),
 
     JwtModule.register({
@@ -27,7 +29,6 @@ import { Users } from '../entities/users-entity';
         expiresIn: '1h',
       },
     }),
-
   ],
 
   controllers: [
