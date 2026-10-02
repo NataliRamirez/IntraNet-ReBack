@@ -2,9 +2,10 @@ import { PartialType } from '@nestjs/mapped-types';
 import { CreateNewsDto } from './create-news-dto';
 
 /**
- * DTO para la actualización de noticias.
+ * DTO utilizado para la actualización de noticias.
  *
- * Extiende el DTO de creación de noticias y transforma todos sus atributos en opcionales, permitiendo actualizar de forma
- * parcial la información de una noticia existente.
+ * Permite actualizar parcialmente una noticia,
+ * enviando únicamente los campos que se desean modificar.
  */
-export class UpdateNewsDto extends PartialType(CreateNewsDto) {}
+export class UpdateNewsDto
+  extends PartialType(CreateNewsDto) {}

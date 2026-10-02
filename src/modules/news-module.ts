@@ -1,29 +1,42 @@
 import { Module } from '@nestjs/common';
+
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { News } from '../entities/news-entity';
+
 import { NewsService } from '../services/news-service';
+
 import { NewsController } from '../controllers/news-controller';
+
 import { NotificationsModule } from './notifications-module';
 
 /**
  * Módulo encargado de la gestión de noticias.
  *
- * Este módulo agrupa todos los componentes necesarios para administrar las noticias publicadas en la Intranet,
- * permitiendo su creación, consulta, actualización y eliminación. Además, integra el módulo de notificaciones 
- * para generar alertas automáticas cuando se publica o modifica una noticia.
+ * Permisos:
+ * - Consulta de noticias: pública.
+ * - Crear noticias: ADMINISTRADOR y COMUNICACIONES.
+ * - Editar noticias: ADMINISTRADOR y COMUNICACIONES.
+ * - Eliminar noticias: ADMINISTRADOR y COMUNICACIONES.
  *
- * Componentes:
- * - NewsController: Expone los endpoints relacionados con noticias.
- * - NewsService: Implementa la lógica de negocio de las noticias.
- * - News: Entidad encargada de la persistencia de datos.
- * - NotificationsModule: Gestiona la creación de notificaciones.
+ * Además, integra el módulo de notificaciones para generar
+ * notificaciones cuando se crean o modifican noticias.
  */
 @Module({
   imports: [
-    TypeOrmModule.forFeature([News]),
-    NotificationsModule, // 👈 ahora sí queda registrado
+    TypeOrmModule.forFeature([
+      News,
+    ]),
+
+    NotificationsModule,
   ],
-  controllers: [NewsController],
-  providers: [NewsService],
+
+  controllers: [
+    NewsController,
+  ],
+
+  providers: [
+    NewsService,
+  ],
 })
 export class NewsModule {}

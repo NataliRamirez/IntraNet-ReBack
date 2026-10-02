@@ -1,27 +1,36 @@
-import { Controller, Get } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+} from '@nestjs/common';
+
 import { AppService } from './app.service';
 
 /**
  * Controlador principal de la aplicación.
  *
- * Gestiona las solicitudes HTTP relacionadas con la ruta raíz del sistema y actúa como punto de entrada para validar que
- * la API se encuentra disponible y funcionando correctamente.
+ * Gestiona la ruta raíz de la API y permite comprobar
+ * que el servidor se encuentra disponible.
+ *
+ * Esta ruta es pública y no requiere autenticación.
  */
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
 
-   /**
-   * Obtiene el mensaje principal de la aplicación.
+  constructor(
+    private readonly appService: AppService,
+  ) {}
+
+  /**
+   * Verifica que la API se encuentra disponible.
    *
-   * Endpoint utilizado para verificar que la API se encuentra disponible y respondiendo correctamente.
+   * Endpoint:
+   * GET /
    *
-   * Ruta: GET /
-   *
-   * @returns {string} Mensaje de bienvenida o estado de funcionamiento.
+   * @returns Mensaje de estado de la aplicación.
    */
   @Get()
   getHello(): string {
+
     return this.appService.getHello();
   }
 }

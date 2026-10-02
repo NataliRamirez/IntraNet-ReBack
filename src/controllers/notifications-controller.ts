@@ -1,69 +1,58 @@
-import { Controller, Get, Post, Body, Param, Patch, HttpCode } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Param,
+  HttpCode,
+} from '@nestjs/common';
+
 import { NotificationsService } from '../services/notifications-service';
 
 /**
- * Controlador encargado de la gestión de notificaciones del sistema.
+ * Controlador encargado de la consulta y actualización
+ * de las notificaciones del sistema.
  *
- * Permite consultar todas las notificaciones registradas, crear nuevas notificaciones y marcar una notificación
- * específica como leída.
+ * Las notificaciones pueden ser consultadas por todos
+ * los usuarios, estén autenticados o no.
+ *
+ * Las notificaciones no se crean directamente mediante
+ * este controlador. Son generadas automáticamente por
+ * los módulos de Noticias y Eventos.
  */
 @Controller('notifications')
 export class NotificationsController {
-  constructor(private readonly notificationsService: NotificationsService) {}
 
-    /**
-   * Obtiene todas las notificaciones registradas.
-   *
-   * Endpoint: GET /notifications
-   *
-   * @returns Lista de notificaciones almacenadas.
-   */
-  @Get()
-  @HttpCode(302)
-  getAll() {
-    return this.notificationsService.findAll();
-  }
+  constructor(
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   /**
-   * Crea una nueva notificación.
+   * Obtiene todas las notificaciones registradas.
    *
-   * Endpoint: POST /notifications
+   * Disponible para todos los usuarios.
    *
-   * @param body Información de la notificación a registrar.
-   * @param body.type Tipo de referencia asociada a la notificación ('news' para noticias o 'event' para eventos).
-   * @param body.reference_id Identificador del recurso relacionado.
-   * @param body.title Título de la notificación.
-   * @param body.message Mensaje descriptivo de la notificación.
-   * @param body.link Enlace opcional asociado a la notificación.
-   *
-   * @returns La notificación creada.
-   * */
-  @Post()
-  @HttpCode(201)
-  create(
-    @Body()
-    body: {
-      type: 'news' | 'event';
-      reference_id: number;
-      title: string;
-      message: string;
-      link?: string;
-    }
-  ) {
-    return this.notificationsService.create(body);
+   * Endpoint:
+   * GET /notifications
+   */
+  @Get()
+  @HttpCode(200)
+  getAll() {
+
+    return this.notificationsService.findAll();
   }
 
   /**
    * Marca una notificación como leída.
    *
-   * Endpoint: PATCH /notifications/:id/read
-   *
-   * @param id Identificador único de la notificación.
-   *
-   * @returns La notificación actualizada con estado de lectura.
+   * Endpoint:
+   * PATCH /notifications/:id/is_read
    */
   @Patch(':id/is_read')
-  markAsRead(@Param('id') id: number) {
+  @HttpCode(200)
+  markAsRead(
+    @Param('id') id: number,
+  ) {
+
     return this.notificationsService.markAsRead(id);
   }
 }

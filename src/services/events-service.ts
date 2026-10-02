@@ -20,7 +20,7 @@ export class EventsService {
     @InjectRepository(Event)
     private readonly repo: Repository<Event>,
     private readonly notificationsService: NotificationsService,
-  ) {}
+  ) { }
 
   /**
    * Obtiene todos los eventos registrados.
@@ -34,13 +34,13 @@ export class EventsService {
     return this.repo.find({ order: { date_time: 'DESC' } });
   }
 
-   /**
-   * Obtiene un evento específico mediante su identificador.
-   *
-   * @param {number} id Identificador único del evento.
-   * @returns {Promise<Event>} Información del evento encontrado.
-   * @throws {NotFoundException} Si el evento no existe.
-   */
+  /**
+  * Obtiene un evento específico mediante su identificador.
+  *
+  * @param {number} id Identificador único del evento.
+  * @returns {Promise<Event>} Información del evento encontrado.
+  * @throws {NotFoundException} Si el evento no existe.
+  */
   async findOne(id: number) {
     const event = await this.repo.findOne({ where: { id } });
     if (!event) throw new NotFoundException('Evento no encontrado');
@@ -69,31 +69,31 @@ export class EventsService {
     return saved;
   }
 
-   /**
-   * Actualiza la información de un evento existente.
-   *
-   * Verifica previamente la existencia del evento antes de realizar la actualización.
-   *
-   * @param {number} id Identificador del evento.
-   * @param {UpdateEventDto} dto Datos que serán actualizados.
-   * @returns {Promise<Event>} Evento actualizado.
-   * @throws {NotFoundException} Si el evento no existe.
-   */
+  /**
+  * Actualiza la información de un evento existente.
+  *
+  * Verifica previamente la existencia del evento antes de realizar la actualización.
+  *
+  * @param {number} id Identificador del evento.
+  * @param {UpdateEventDto} dto Datos que serán actualizados.
+  * @returns {Promise<Event>} Evento actualizado.
+  * @throws {NotFoundException} Si el evento no existe.
+  */
   async update(id: number, dto: UpdateEventDto) {
     await this.findOne(id);
     await this.repo.update(id, dto);
     return this.findOne(id);
   }
 
-   /**
-   * Elimina un evento del sistema.
-   *
-   * Verifica previamente que el evento exista antes de ejecutar la eliminación.
-   *
-   * @param {number} id Identificador del evento a eliminar.
-   * @returns {Promise<{ deleted: boolean }>} Resultado de la operación de eliminación.
-   * @throws {NotFoundException} Si el evento no existe.
-   */
+  /**
+  * Elimina un evento del sistema.
+  *
+  * Verifica previamente que el evento exista antes de ejecutar la eliminación.
+  *
+  * @param {number} id Identificador del evento a eliminar.
+  * @returns {Promise<{ deleted: boolean }>} Resultado de la operación de eliminación.
+  * @throws {NotFoundException} Si el evento no existe.
+  */
   async remove(id: number) {
     await this.findOne(id);
     await this.repo.delete(id);

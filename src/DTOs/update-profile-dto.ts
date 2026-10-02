@@ -5,6 +5,10 @@ import {
   MaxLength,
 } from 'class-validator';
 
+/**
+ * DTO utilizado para actualizar el perfil
+ * del usuario autenticado.
+ */
 export class UpdateProfileDto {
 
   @IsOptional()

@@ -16,28 +16,21 @@ export class AuthController {
 
   @Post('login')
   async login(
-    @Body() body: {
+    @Body()
+    body: {
       email: string;
       password: string;
     },
   ) {
 
-    /*
-     * Temporalmente estamos simulando
-     * un usuario.
-     *
-     * Después lo conectaremos con MySQL.
-     */
-
-    const user = {
-      id: 1,
-      email: body.email,
-      role: 'ADMIN',
-    };
+    const user = await this.authService.validateUser(
+      body.email,
+      body.password,
+    );
 
     if (!user) {
       throw new UnauthorizedException(
-        'Credenciales inválidas',
+        'Correo o contraseña incorrectos',
       );
     }
 

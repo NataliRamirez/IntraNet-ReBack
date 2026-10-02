@@ -98,23 +98,47 @@ export class EmployeeService {
   *
   * @throws {NotFoundException} Si el empleado no existe.
   */
-  async update(id: number, dto: UpdateEmployeeDto): Promise<Employee> {
-    try {
-      const employee = await this.findOne(id);
+  async update(
+  id: number,
+  dto: UpdateEmployeeDto,
+): Promise<Employee> {
 
-      Object.assign(employee, dto);
+  try {
 
-      return await this.employeeRepository.save(employee);
-    } catch (error: any) {
-      if (error.code === 'ER_DUP_ENTRY') {
-        throw new ConflictException(
-          'El número de documento ya está registrado',
-        );
-      }
+    const employee =
+      await this.findOne(id);
 
-      throw error;
+    Object.assign(
+      employee,
+      {
+        ...dto,
+
+        ...(dto.birthday !== undefined
+          ? {
+              birthday: new Date(
+                dto.birthday,
+              ),
+            }
+          : {}),
+      },
+    );
+
+    return await this.employeeRepository.save(
+      employee,
+    );
+
+  } catch (error: any) {
+
+    if (error.code === 'ER_DUP_ENTRY') {
+
+      throw new ConflictException(
+        'El número de documento ya está registrado',
+      );
     }
+
+    throw error;
   }
+}
 
   /**
   * Elimina un empleado del sistema.
