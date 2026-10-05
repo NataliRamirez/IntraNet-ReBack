@@ -21,7 +21,7 @@ export class NotificationsService {
 
     @InjectRepository(Users)
     private readonly usersRepository: Repository<Users>,
-  ) {}
+  ) { }
 
   // =====================================================
   // CREAR NOTIFICACIONES
@@ -137,15 +137,16 @@ export class NotificationsService {
   // OBTENER TODAS
   // =====================================================
 
-  async findAll() {
-    return this.notificationsRepository.find({
-      relations: {
-        actor: true,
-      },
-      order: {
-        created_at: 'DESC',
-      },
-    });
+  async findAll(userId: number) {
+    return this.notificationsRepository
+      .createQueryBuilder('notification')
+      .leftJoinAndSelect('notification.actor', 'actor')
+      .where(
+        'notification.user_id IS NULL OR notification.user_id = :userId',
+        { userId },
+      )
+      .orderBy('notification.created_at', 'DESC')
+      .getMany();
   }
 
   // =====================================================
@@ -160,11 +161,21 @@ export class NotificationsService {
       await this.notificationsRepository.findOne({
         where: {
           id,
-          user_id: userId,
         },
       });
 
     if (!notification) {
+      throw new NotFoundException(
+        'No se encontró la notificación',
+      );
+    }
+
+    // Si es privada, solamente puede modificarla
+    // el usuario al que pertenece.
+    if (
+      notification.user_id !== null &&
+      notification.user_id !== userId
+    ) {
       throw new NotFoundException(
         'No se encontró la notificación',
       );

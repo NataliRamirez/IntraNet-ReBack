@@ -11,11 +11,11 @@ import {
 
 import { EmployeeService } from '../services/employee-service';
 
-import { CreateEmployeeDto } from '../dto/create-employee.dto';
-import { UpdateEmployeeDto } from '../dto/update-employee.dto';
+import { CreateEmployeeDto } from '../DTOs/create-employee-dto';
+import { UpdateEmployeeDto } from '../DTOs/update-employee-dto';
 
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { RolesGuard } from '../guards/roles.guard';
+import { JwtAuthGuard } from '../guards/jwt-auth-guard';
+import { RolesGuard } from '../guards/roles-guard';
 import { Roles } from '../decorators/roles-decorator';
 
 @Controller('employee')

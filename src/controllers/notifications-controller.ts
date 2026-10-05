@@ -16,15 +16,16 @@ import { JwtAuthGuard } from '../guards/jwt-auth-guard';
 export class NotificationsController {
   constructor(
     private readonly notificationsService: NotificationsService,
-  ) {}
+  ) { }
 
   // ==========================================
   // PÚBLICO
   // ==========================================
 
   @Get()
-  async findAll() {
-    return this.notificationsService.findAll();
+  @UseGuards(JwtAuthGuard)
+  async findAll(@Req() req: any) {
+    return this.notificationsService.findAll(req.user.id);
   }
 
   // ==========================================

@@ -12,7 +12,7 @@ import { UsersService } from '../services/users-service';
 import { JwtAuthGuard } from '../guards/jwt-auth-guard';
 
 import { UpdateProfileDto } from '../DTOs/update-profile-dto';
-import { ChangePasswordDto } from '../dto/change-password-dto';
+import { ChangePasswordDto } from '../DTOs/change-password-dto';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)

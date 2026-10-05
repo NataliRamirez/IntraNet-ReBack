@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -13,39 +14,26 @@ import { Users } from '../entities/users-entity';
 
 import { UpdateProfileDto } from '../DTOs/update-profile-dto';
 import { ChangePasswordDto } from '../DTOs/change-password-dto';
-import { ConfirmPasswordDto } from '../DTOs/confirm-password-dto';
-import { DeleteProfileDto } from '../DTOs/delete-profile-dto';
 
 @Injectable()
 export class UsersService {
-
   constructor(
     @InjectRepository(Users)
-    private readonly userRepository: Repository<Users>,
+    private readonly usersRepository: Repository<Users>,
   ) {}
 
-  /**
-   * Busca un usuario por email.
-   */
-  async findByEmail(email: string): Promise<Users | null> {
+  // =====================================================
+  // OBTENER PERFIL
+  // =====================================================
 
-    return this.userRepository.findOne({
-      where: {
-        email,
-      },
-      relations: ['role'],
-    });
-  }
-
-  /**
-   * Actualiza los datos del perfil.
-   */
-  async updateProfile(
-    email: string,
-    request: UpdateProfileDto,
-  ) {
-
-    const user = await this.findByEmail(email);
+  async getProfile(userId: number) {
+    const user =
+      await this.usersRepository.findOne({
+        where: {
+          id: userId,
+        },
+        relations: ['role'],
+      });
 
     if (!user) {
       throw new NotFoundException(
@@ -53,43 +41,110 @@ export class UsersService {
       );
     }
 
-    if (request.name !== undefined) {
-      user.name = request.name;
+    return {
+      id: user.id,
+      id_card: user.id_card,
+      name: user.name,
+      email: user.email,
+      job_position: user.job_position,
+      role: user.role?.name,
+    };
+  }
+
+  // =====================================================
+  // ACTUALIZAR PERFIL
+  // =====================================================
+
+  async updateProfile(
+    userId: number,
+    updateProfileDto: UpdateProfileDto,
+  ) {
+    const user =
+      await this.usersRepository.findOne({
+        where: {
+          id: userId,
+        },
+        relations: ['role'],
+      });
+
+    if (!user) {
+      throw new NotFoundException(
+        'Usuario no encontrado',
+      );
     }
 
-    if (request.email !== undefined) {
-      user.email = request.email;
+    // Actualizar solamente los campos
+    // permitidos del perfil.
+    if (
+      updateProfileDto.name !== undefined
+    ) {
+      user.name = updateProfileDto.name;
     }
 
-    if (request.job_position !== undefined) {
-      user.job_position = request.job_position;
+    if (
+      updateProfileDto.email !== undefined
+    ) {
+      const existingUser =
+        await this.usersRepository.findOne({
+          where: {
+            email: updateProfileDto.email,
+          },
+        });
+
+      if (
+        existingUser &&
+        existingUser.id !== userId
+      ) {
+        throw new BadRequestException(
+          'El correo electrónico ya está registrado',
+        );
+      }
+
+      user.email =
+        updateProfileDto.email;
+    }
+
+    if (
+      updateProfileDto.job_position !== undefined
+    ) {
+      user.job_position =
+        updateProfileDto.job_position;
     }
 
     const updatedUser =
-      await this.userRepository.save(user);
+      await this.usersRepository.save(user);
 
     return {
-      message: 'Perfil actualizado correctamente',
+      message:
+        'Perfil actualizado correctamente',
 
-      data: {
-        userId: updatedUser.id,
+      user: {
+        id: updatedUser.id,
         id_card: updatedUser.id_card,
         name: updatedUser.name,
         email: updatedUser.email,
-        job_position: updatedUser.job_position,
+        job_position:
+          updatedUser.job_position,
+        role:
+          updatedUser.role?.name,
       },
     };
   }
 
-  /**
-   * Cambia la contraseña.
-   */
-  async changePassword(
-    email: string,
-    request: ChangePasswordDto,
-  ) {
+  // =====================================================
+  // CAMBIAR CONTRASEÑA
+  // =====================================================
 
-    const user = await this.findByEmail(email);
+  async changePassword(
+    userId: number,
+    changePasswordDto: ChangePasswordDto,
+  ) {
+    const user =
+      await this.usersRepository.findOne({
+        where: {
+          id: userId,
+        },
+      });
 
     if (!user) {
       throw new NotFoundException(
@@ -97,109 +152,40 @@ export class UsersService {
       );
     }
 
-    const validPassword =
+    const passwordValid =
       await bcrypt.compare(
-        request.currentPassword,
+        changePasswordDto.currentPassword,
         user.password,
       );
 
-    if (!validPassword) {
+    if (!passwordValid) {
       throw new UnauthorizedException(
         'La contraseña actual es incorrecta',
       );
     }
 
-    user.password =
+    if (
+      changePasswordDto.currentPassword ===
+      changePasswordDto.newPassword
+    ) {
+      throw new BadRequestException(
+        'La nueva contraseña debe ser diferente a la actual',
+      );
+    }
+
+    const hashedPassword =
       await bcrypt.hash(
-        request.newPassword,
+        changePasswordDto.newPassword,
         10,
       );
 
-    await this.userRepository.save(user);
+    user.password = hashedPassword;
+
+    await this.usersRepository.save(user);
 
     return {
-      message: 'Contraseña actualizada correctamente',
-      data: null,
-    };
-  }
-
-  /**
-   * Confirma la contraseña.
-   */
-  async confirmPassword(
-    email: string,
-    request: ConfirmPasswordDto,
-  ) {
-
-    const user = await this.findByEmail(email);
-
-    if (!user) {
-      throw new NotFoundException(
-        'Usuario no encontrado',
-      );
-    }
-
-    const validPassword =
-      await bcrypt.compare(
-        request.password,
-        user.password,
-      );
-
-    if (!validPassword) {
-      throw new UnauthorizedException(
-        'La contraseña es incorrecta',
-      );
-    }
-
-    return {
-      message: 'Contraseña confirmada correctamente',
-
-      data: {
-        confirmed: true,
-        timestamp: new Date(),
-      },
-    };
-  }
-
-  /**
-   * Elimina definitivamente el usuario.
-   */
-  async deleteProfile(
-    email: string,
-    request: DeleteProfileDto,
-  ) {
-
-    const user = await this.findByEmail(email);
-
-    if (!user) {
-      throw new NotFoundException(
-        'Usuario no encontrado',
-      );
-    }
-
-    const validPassword =
-      await bcrypt.compare(
-        request.password,
-        user.password,
-      );
-
-    if (!validPassword) {
-      throw new UnauthorizedException(
-        'La contraseña es incorrecta',
-      );
-    }
-
-    await this.userRepository.delete(
-      user.id,
-    );
-
-    return {
-      message: 'Perfil eliminado correctamente',
-
-      data: {
-        deleted: true,
-        userId: user.id,
-      },
+      message:
+        'Contraseña actualizada correctamente',
     };
   }
 }

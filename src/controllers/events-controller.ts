@@ -12,11 +12,11 @@ import {
 
 import { EventsService } from '../services/events-service';
 
-import { CreateEventDto } from '../dto/create-event.dto';
-import { UpdateEventDto } from '../dto/update-event.dto';
+import { CreateEventDto } from '../DTOs/create-event-dto';
+import { UpdateEventDto } from '../DTOs/update-event-dto';
 
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { RolesGuard } from '../guards/roles.guard';
+import { JwtAuthGuard } from '../guards/jwt-auth-guard';
+import { RolesGuard } from '../guards/roles-guard';
 import { Roles } from '../decorators/roles-decorator';
 
 @Controller('events')

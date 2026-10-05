@@ -12,11 +12,11 @@ import {
 
 import { NewsService } from '../services/news-service';
 
-import { CreateNewsDto } from '../dto/create-news.dto';
-import { UpdateNewsDto } from '../dto/update-news.dto';
+import { CreateNewsDto } from '../DTOs/create-news-dto';
+import { UpdateNewsDto } from '../DTOs/update-news-dto';
 
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { RolesGuard } from '../guards/roles.guard';
+import { JwtAuthGuard } from '../guards/jwt-auth-guard';
+import { RolesGuard } from '../guards/roles-guard';
 import { Roles } from '../decorators/roles-decorator';
 
 @Controller('news')
