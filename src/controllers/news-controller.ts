@@ -7,8 +7,15 @@ import {
   Patch,
   Post,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname, join } from 'path';
+import { mkdirSync } from 'fs';
 
 import { NewsService } from '../services/news-service';
 
@@ -19,6 +26,33 @@ import { JwtAuthGuard } from '../guards/jwt-auth-guard';
 import { RolesGuard } from '../guards/roles-guard';
 import { Roles } from '../decorators/roles-decorator';
 
+const uploadDirectory = join(process.cwd(), 'uploads', 'news');
+
+mkdirSync(uploadDirectory, { recursive: true });
+
+const newsImageInterceptor = FileInterceptor('image', {
+  storage: diskStorage({
+    destination: uploadDirectory,
+    filename: (_req, file, callback) => {
+      const uniqueName =
+        `${Date.now()}-${Math.round(Math.random() * 1e9)}` +
+        extname(file.originalname).toLowerCase();
+
+      callback(null, uniqueName);
+    },
+  }),
+  fileFilter: (_req, file, callback) => {
+    if (!file.mimetype.startsWith('image/')) {
+      return callback(
+        new Error('Solo se permiten archivos de imagen.'),
+        false,
+      );
+    }
+
+    callback(null, true);
+  },
+});
+
 @Controller('news')
 export class NewsController {
   constructor(
@@ -26,7 +60,7 @@ export class NewsController {
   ) {}
 
   // ==========================================
-  // PÚBLICO
+  // CONSULTAS PÚBLICAS
   // ==========================================
 
   @Get()
@@ -35,67 +69,51 @@ export class NewsController {
   }
 
   @Get(':id')
-  async findOne(
-    @Param('id') id: string,
-  ) {
-    return this.newsService.findOne(
-      Number(id),
-    );
+  async findOne(@Param('id') id: string) {
+    return this.newsService.findOne(Number(id));
   }
 
   // ==========================================
-  // ADMINISTRADOR / COMUNICACIONES
+  // CREAR NOTICIA
   // ==========================================
 
   @Post()
-  @UseGuards(
-    JwtAuthGuard,
-    RolesGuard,
-  )
-  @Roles(
-    'ADMINISTRADOR',
-    'COMUNICACIONES',
-  )
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMINISTRADOR', 'COMUNICACIONES')
+  @UseInterceptors(newsImageInterceptor)
   async create(
     @Body() createNewsDto: CreateNewsDto,
+    @UploadedFile() file: Express.Multer.File,
     @Req() req: any,
   ) {
-    /*
-     * req.user contiene:
-     * {
-     *   id,
-     *   email,
-     *   role
-     * }
-     *
-     * Se envía al Service para que pueda
-     * registrar quién creó la noticia y
-     * generar las notificaciones.
-     */
+    if (file) {
+      createNewsDto.image = file.filename;
+    }
+
     return this.newsService.create(
       createNewsDto,
       req.user,
     );
   }
 
+  // ==========================================
+  // ACTUALIZAR NOTICIA
+  // ==========================================
+
   @Patch(':id')
-  @UseGuards(
-    JwtAuthGuard,
-    RolesGuard,
-  )
-  @Roles(
-    'ADMINISTRADOR',
-    'COMUNICACIONES',
-  )
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMINISTRADOR', 'COMUNICACIONES')
+  @UseInterceptors(newsImageInterceptor)
   async update(
     @Param('id') id: string,
     @Body() updateNewsDto: UpdateNewsDto,
+    @UploadedFile() file: Express.Multer.File,
     @Req() req: any,
   ) {
-    /*
-     * El Service utilizará req.user para
-     * identificar quién realizó la edición.
-     */
+    if (file) {
+      updateNewsDto.image = file.filename;
+    }
+
     return this.newsService.update(
       Number(id),
       updateNewsDto,
@@ -103,24 +121,17 @@ export class NewsController {
     );
   }
 
+  // ==========================================
+  // ELIMINAR NOTICIA
+  // ==========================================
+
   @Delete(':id')
-  @UseGuards(
-    JwtAuthGuard,
-    RolesGuard,
-  )
-  @Roles(
-    'ADMINISTRADOR',
-    'COMUNICACIONES',
-  )
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMINISTRADOR', 'COMUNICACIONES')
   async remove(
     @Param('id') id: string,
     @Req() req: any,
   ) {
-    /*
-     * El Service necesita req.user porque
-     * la noticia será eliminada y después
-     * debe generarse la notificación.
-     */
     return this.newsService.remove(
       Number(id),
       req.user,

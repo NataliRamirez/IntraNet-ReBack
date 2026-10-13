@@ -1,3 +1,4 @@
+
 import {
   Controller,
   Delete,
@@ -9,7 +10,6 @@ import {
 } from '@nestjs/common';
 
 import { NotificationsService } from '../services/notifications-service';
-
 import { JwtAuthGuard } from '../guards/jwt-auth-guard';
 
 @Controller('notifications')
@@ -19,13 +19,14 @@ export class NotificationsController {
   ) { }
 
   // ==========================================
-  // PÚBLICO
+  // PÚBLICO: CONSULTAR NOTIFICACIONES
   // ==========================================
 
+  // PÚBLICO: consultar notificaciones
   @Get()
-  @UseGuards(JwtAuthGuard)
   async findAll(@Req() req: any) {
-    return this.notificationsService.findAll(req.user.id);
+    const userId = req.user?.id;
+    return this.notificationsService.findAll(userId);
   }
 
   // ==========================================
@@ -46,9 +47,7 @@ export class NotificationsController {
 
   @Patch('read-all')
   @UseGuards(JwtAuthGuard)
-  async markAllAsRead(
-    @Req() req: any,
-  ) {
+  async markAllAsRead(@Req() req: any) {
     return this.notificationsService.markAllAsRead(
       req.user.id,
     );

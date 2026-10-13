@@ -137,14 +137,28 @@ export class NotificationsService {
   // OBTENER TODAS
   // =====================================================
 
-  async findAll(userId: number) {
-    return this.notificationsRepository
+  // =====================================================
+  // OBTENER TODAS LAS NOTIFICACIONES
+  // =====================================================
+
+  async findAll(userId?: number) {
+    const query = this.notificationsRepository
       .createQueryBuilder('notification')
-      .leftJoinAndSelect('notification.actor', 'actor')
-      .where(
+      .leftJoinAndSelect('notification.actor', 'actor');
+
+    // Si hay un usuario autenticado, puede consultar
+    // las notificaciones públicas y las dirigidas a él.
+    if (userId !== undefined) {
+      query.where(
         'notification.user_id IS NULL OR notification.user_id = :userId',
         { userId },
-      )
+      );
+    } else {
+      // Si no hay sesión, solo consulta notificaciones públicas.
+      query.where('notification.user_id IS NULL');
+    }
+
+    return query
       .orderBy('notification.created_at', 'DESC')
       .getMany();
   }
