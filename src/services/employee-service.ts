@@ -99,46 +99,46 @@ export class EmployeeService {
   * @throws {NotFoundException} Si el empleado no existe.
   */
   async update(
-  id: number,
-  dto: UpdateEmployeeDto,
-): Promise<Employee> {
+    id: number,
+    dto: UpdateEmployeeDto,
+  ): Promise<Employee> {
 
-  try {
+    try {
 
-    const employee =
-      await this.findOne(id);
+      const employee =
+        await this.findOne(id);
 
-    Object.assign(
-      employee,
-      {
-        ...dto,
+      Object.assign(
+        employee,
+        {
+          ...dto,
 
-        ...(dto.birthday !== undefined
-          ? {
+          ...(dto.birthday !== undefined
+            ? {
               birthday: new Date(
                 dto.birthday,
               ),
             }
-          : {}),
-      },
-    );
-
-    return await this.employeeRepository.save(
-      employee,
-    );
-
-  } catch (error: any) {
-
-    if (error.code === 'ER_DUP_ENTRY') {
-
-      throw new ConflictException(
-        'El número de documento ya está registrado',
+            : {}),
+        },
       );
-    }
 
-    throw error;
+      return await this.employeeRepository.save(
+        employee,
+      );
+
+    } catch (error: any) {
+
+      if (error.code === 'ER_DUP_ENTRY') {
+
+        throw new ConflictException(
+          'El número de documento ya está registrado',
+        );
+      }
+
+      throw error;
+    }
   }
-}
 
   /**
   * Elimina un empleado del sistema.
@@ -158,4 +158,28 @@ export class EmployeeService {
       throw error;
     }
   }
+
+
+  /**
+   * Devuelve únicamente los datos públicos de los empleados
+   * que cumplen años hoy.
+   */
+  async findBirthdaysToday(): Promise<
+    Pick<Employee, 'name' | 'job_position' | 'area' | 'birthday'>[]
+  > {
+    return this.employeeRepository
+      .createQueryBuilder('employee')
+      .select([
+        'employee.name',
+        'employee.job_position',
+        'employee.area',
+        'employee.birthday',
+      ])
+      .where('MONTH(employee.birthday) = MONTH(CURDATE())')
+      .andWhere('DAY(employee.birthday) = DAY(CURDATE())')
+      .orderBy('employee.name', 'ASC')
+      .getMany();
+  }
+
 }
+

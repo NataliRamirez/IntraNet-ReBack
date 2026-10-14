@@ -1,41 +1,25 @@
-import { Module } from '@nestjs/common';
 
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Employee } from '../entities/employee-entity';
-
 import { EmployeeService } from '../services/employee-service';
-
 import { EmployeeController } from '../controllers/employee-controller';
+import { PublicEmployeeController } from '../controllers/public-employee-controller';
 
-/**
- * Módulo encargado de la gestión de empleados.
- *
- * Este módulo agrupa todos los componentes necesarios para administrar
- * la información de los empleados registrados en la Intranet.
- *
- * Permisos:
- * - Todos los endpoints de empleados requieren autenticación.
- * - Solo el rol ADMINISTRADOR puede acceder.
- *
- * Componentes:
- * - EmployeeController: Expone los endpoints de gestión de empleados.
- * - EmployeeService: Implementa la lógica de negocio.
- * - Employee: Entidad asociada a la persistencia de datos.
- */
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      Employee,
-    ]),
+    TypeOrmModule.forFeature([Employee]),
   ],
-
   providers: [
     EmployeeService,
   ],
-
   controllers: [
     EmployeeController,
+    PublicEmployeeController,
+  ],
+  exports: [
+    EmployeeService,
   ],
 })
 export class EmployeeModule {}
