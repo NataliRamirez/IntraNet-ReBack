@@ -1,5 +1,6 @@
 import {
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 
 import {
@@ -18,7 +19,6 @@ import { Users } from '../entities/users-entity';
 
 @Injectable()
 export class AuthService {
-
   constructor(
     private readonly jwtService: JwtService,
 
@@ -27,22 +27,33 @@ export class AuthService {
   ) {}
 
   /**
-   * Busca el usuario en MySQL
-   * y verifica su contraseña.
+   * Busca al usuario por correo y verifica su contraseña.
    */
   async validateUser(
     email: string,
     password: string,
   ): Promise<Users | null> {
+    if (
+      !email ||
+      typeof email !== 'string' ||
+      !password ||
+      typeof password !== 'string'
+    ) {
+      return null;
+    }
 
-    const user = await this.usersRepository.findOne({
-      where: {
-        email,
-      },
-      relations: ['role'],
-    });
+    // Incluimos explícitamente la contraseña porque
+    // en la entidad tiene select: false.
+    const user = await this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .leftJoinAndSelect('user.role', 'role')
+      .where('user.email = :email', {
+        email: email.trim(),
+      })
+      .getOne();
 
-    if (!user) {
+    if (!user || !user.password) {
       return null;
     }
 
@@ -55,13 +66,21 @@ export class AuthService {
       return null;
     }
 
+    // No devolver el hash en el objeto validado.
+    user.password = '';
+
     return user;
   }
 
   /**
-   * Genera el JWT.
+   * Genera el JWT del usuario autenticado.
    */
   async login(user: Users) {
+    if (!user.role) {
+      throw new UnauthorizedException(
+        'El usuario no tiene un rol asignado.',
+      );
+    }
 
     const payload = {
       sub: user.id,
@@ -75,16 +94,21 @@ export class AuthService {
   }
 
   /**
-   * Verifica una contraseña contra un hash.
+   * Verifica una contraseña contra un hash existente.
    */
   async validatePassword(
     password: string,
     hashedPassword: string,
   ): Promise<boolean> {
+    if (
+      !password ||
+      typeof password !== 'string' ||
+      !hashedPassword ||
+      typeof hashedPassword !== 'string'
+    ) {
+      return false;
+    }
 
-    return bcrypt.compare(
-      password,
-      hashedPassword,
-    );
+    return bcrypt.compare(password, hashedPassword);
   }
 }

@@ -4,6 +4,9 @@ import { AppModule } from './app.module';
 
 import { NestExpressApplication } from '@nestjs/platform-express';
 
+import { ValidationPipe } from '@nestjs/common';
+
+
 import * as bodyParser from 'body-parser';
 
 import * as dotenv from 'dotenv';
@@ -20,6 +23,15 @@ async function bootstrap() {
     await NestFactory.create<NestExpressApplication>(
       AppModule,
     );
+
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   // =====================================================
   // CORS
@@ -114,6 +126,8 @@ async function bootstrap() {
         '/notifications',
 
         '/employee',
+
+        '/users',
 
         '/birthday-image',
 

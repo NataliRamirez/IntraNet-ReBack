@@ -8,6 +8,8 @@ import { EventsModule } from './modules/events-module';
 
 import { EmployeeModule } from './modules/employee-module';
 
+import { UsersModule } from './modules/users-module';
+
 import { NewsModule } from './modules/news-module';
 
 import { NotificationsModule } from './modules/notifications-module';
@@ -49,6 +51,8 @@ import { AuthModule } from './modules/auth-module';
     EventsModule,
 
     EmployeeModule,
+
+    UsersModule,
 
     NewsModule,
 
