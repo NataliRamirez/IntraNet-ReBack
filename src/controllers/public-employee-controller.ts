@@ -9,7 +9,7 @@ export class PublicEmployeeController {
   ) {}
 
   @Get('birthdays/today')
-  async getBirthdaysToday() {
+  async findBirthdaysToday() {
     return this.employeeService.findBirthdaysToday();
   }
 }

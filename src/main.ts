@@ -116,24 +116,16 @@ async function bootstrap() {
     (req, res, next) => {
 
       const apiRoutes = [
-
         '/auth',
-
         '/events',
-
         '/news',
-
         '/notifications',
-
         '/employee',
-
+        '/public/employees',
         '/users',
-
         '/birthday-image',
-
         '/uploads',
       ];
-
 
       const isApiRoute =
         apiRoutes.some(
@@ -159,10 +151,15 @@ async function bootstrap() {
        * devolvemos la aplicación React.
        */
       return res.sendFile(
-        path.join(
-          publicPath,
-          'index.html',
-        ),
+        path.join(publicPath, 'index.html'),
+        (error) => {
+          if (error && !res.headersSent) {
+            res.status(404).json({
+              statusCode: 404,
+              message: 'Ruta no encontrada',
+            });
+          }
+        },
       );
     },
   );

@@ -160,9 +160,10 @@ export class EmployeeService {
   }
 
 
+  
   /**
-   * Devuelve únicamente los datos públicos de los empleados
-   * que cumplen años hoy.
+   * Obtiene los empleados que cumplen años hoy.
+   * Solo devuelve nombre, cargo, área y fecha de cumpleaños.
    */
   async findBirthdaysToday(): Promise<
     Pick<Employee, 'name' | 'job_position' | 'area' | 'birthday'>[]
@@ -180,6 +181,7 @@ export class EmployeeService {
       .orderBy('employee.name', 'ASC')
       .getMany();
   }
+
 
 }
 
