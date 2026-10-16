@@ -36,7 +36,7 @@ interface AuthenticatedRequest extends Request {
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
-  ) {}
+  ) { }
 
   // =====================================================
   // LISTAR TODOS LOS USUARIOS

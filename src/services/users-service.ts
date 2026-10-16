@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException,} from '@nestjs/common';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -178,7 +172,6 @@ export class UsersService {
       if (!role) {
         throw new BadRequestException('El rol seleccionado no existe.');
       }
-
       user.role = role;
     }
 
@@ -201,7 +194,6 @@ export class UsersService {
           'El documento o correo electrónico ya está registrado.',
         );
       }
-
       throw error;
     }
 
@@ -257,10 +249,8 @@ export class UsersService {
           'No se puede eliminar este usuario porque tiene registros relacionados.',
         );
       }
-
       throw error;
     }
-
     return {
       message: 'Usuario eliminado correctamente.',
     };
@@ -280,7 +270,6 @@ export class UsersService {
         'Usuario no encontrado',
       );
     }
-
     return this.formatUser(user);
   }
 
@@ -288,10 +277,7 @@ export class UsersService {
   // ACTUALIZAR PERFIL
   // =====================================================
 
-  async updateProfile(
-    userId: number,
-    dto: UpdateProfileDto,
-  ) {
+  async updateProfile(userId: number, dto: UpdateProfileDto,) {
     const user = await this.usersRepository.findOne({
       where: { id: userId },
       relations: { role: true },
@@ -322,7 +308,6 @@ export class UsersService {
           'El nombre no puede estar vacío',
         );
       }
-
       user.name = name;
     }
 
@@ -334,7 +319,6 @@ export class UsersService {
           'El cargo no puede estar vacío',
         );
       }
-
       user.job_position = jobPosition;
     }
 
@@ -357,7 +341,6 @@ export class UsersService {
           'El correo electrónico ya está registrado',
         );
       }
-
       user.email = email;
     }
 
@@ -387,12 +370,8 @@ export class UsersService {
   // CAMBIAR CONTRASEÑA
   // =====================================================
 
-  async changePassword(
-    userId: number,
-    dto: ChangePasswordDto,
-  ) {
-    // La contraseña tiene select: false en la entidad.
-    // Por eso se debe solicitar explícitamente.
+
+  async changePassword( userId: number, dto: ChangePasswordDto,) {
     const user = await this.usersRepository
       .createQueryBuilder('user')
       .addSelect('user.password')
@@ -400,11 +379,10 @@ export class UsersService {
       .getOne();
 
     if (!user) {
-      throw new NotFoundException(
-        'Usuario no encontrado',
-      );
+      throw new NotFoundException( 'Usuario no encontrado.',);
     }
 
+    // Validar la contraseña actual.
     const passwordValid = await bcrypt.compare(
       dto.currentPassword,
       user.password,
@@ -412,27 +390,26 @@ export class UsersService {
 
     if (!passwordValid) {
       throw new UnauthorizedException(
-        'La contraseña actual es incorrecta',
+        'La contraseña actual es incorrecta.',
       );
     }
 
     if (dto.currentPassword === dto.newPassword) {
       throw new BadRequestException(
-        'La nueva contraseña debe ser diferente a la actual',
+        'La nueva contraseña debe ser diferente a la actual.',
       );
     }
 
     const hashedPassword = await bcrypt.hash(
       dto.newPassword,
-      10,
+      12,
     );
 
     user.password = hashedPassword;
-
     await this.usersRepository.save(user);
 
     return {
-      message: 'Contraseña actualizada correctamente',
+      message: 'Contraseña actualizada correctamente.',
     };
   }
 }
