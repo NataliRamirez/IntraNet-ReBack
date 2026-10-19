@@ -1,15 +1,7 @@
-import {
-  IsDateString,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import {IsDateString, IsNotEmpty, IsOptional, IsString,} from 'class-validator';
 
 /**
  * DTO utilizado para la creación de noticias.
- *
- * Define y valida la información necesaria para
- * registrar una nueva noticia.
  */
 export class CreateNewsDto {
 

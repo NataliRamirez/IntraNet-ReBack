@@ -101,11 +101,7 @@ async function bootstrap() {
       'public',
     );
 
-  app.use(
-    express.static(
-      publicPath,
-    ),
-  );
+  app.use(express.static(publicPath,),);
 
 
   // =====================================================
@@ -127,24 +123,11 @@ async function bootstrap() {
         '/uploads',
       ];
 
-      const isApiRoute =
-        apiRoutes.some(
-          (route) =>
-            req.originalUrl.startsWith(
-              route,
-            ),
-        );
+      const isApiRoute = apiRoutes.some((route) => req.originalUrl.startsWith(route,),);
 
-
-      /*
-       * Si es una ruta del backend,
-       * dejamos que NestJS procese la solicitud.
-       */
       if (isApiRoute) {
-
         return next();
       }
-
 
       /*
        * Si no es una ruta de API,
@@ -164,26 +147,14 @@ async function bootstrap() {
     },
   );
 
-
   // =====================================================
   // SERVIDOR
   // =====================================================
 
-  const PORT =
-    Number(
-      process.env.PORT,
-    ) || 3002;
+  const PORT = Number(process.env.PORT,) || 3002;
+  const HOST = process.env.HOST || '0.0.0.0';
 
-  const HOST =
-    process.env.HOST ||
-    '0.0.0.0';
-
-
-  await app.listen(
-    PORT,
-    HOST,
-  );
-
+  await app.listen(PORT,HOST,);
 
   console.log(
     `Servidor corriendo en http://${HOST}:${PORT}`,

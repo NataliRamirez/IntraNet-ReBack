@@ -2,9 +2,6 @@ import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 /**
  * Entidad que representa un evento dentro del sistema.
- *
- * Almacena la información de los eventos publicados en la Intranet, incluyendo detalles, ubicación,
- * enlaces relacionados e imagen asociada.
  */
 @Entity('events')
 export class Event {
@@ -30,19 +27,10 @@ export class Event {
   @Column({ type: 'varchar', length: 255, nullable: true })
   image!: string;
 
-  @Column({
-    name: 'created_at',
-    type: 'datetime',
-    default: () => 'CURRENT_TIMESTAMP',
-  })
+  @Column({name: 'created_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP',})
   createdAt!: Date;
 
-  @Column({
-    name: 'updated_at',
-    type: 'datetime',
-    default: () => 'CURRENT_TIMESTAMP',
-    onUpdate: 'CURRENT_TIMESTAMP',
-  })
+  @Column({name: 'updated_at', type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP',})
   updatedAt!: Date;
 
 }

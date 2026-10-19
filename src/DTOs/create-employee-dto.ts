@@ -1,14 +1,7 @@
-import {
-  IsString,
-  IsNotEmpty,
-  IsDateString,
-} from 'class-validator';
+import {IsString, IsNotEmpty, IsDateString,} from 'class-validator';
 
 /**
  * DTO utilizado para la creación de empleados.
- *
- * Define y valida los datos requeridos para registrar
- * un nuevo empleado dentro del sistema de la Intranet.
  */
 export class CreateEmployeeDto {
 

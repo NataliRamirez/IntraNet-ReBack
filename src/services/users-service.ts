@@ -1,26 +1,57 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException,} from '@nestjs/common';
-
+import {BadRequestException, ConflictException, Injectable, Logger, NotFoundException, UnauthorizedException,} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-
 import * as bcrypt from 'bcrypt';
-
 import { Users } from '../entities/users-entity';
+import { Roles } from '../entities/roles-entity';
 import { UpdateProfileDto } from '../DTOs/update-profile-dto';
 import { ChangePasswordDto } from '../DTOs/change-password-dto';
-import { Roles } from '../entities/roles-entity';
 import { CreateUsersDto } from '../DTOs/create-users-dto';
 import { UpdateUsersDto } from '../DTOs/update-users-dto';
+import { NotificationsService } from './notifications-service';
+import { NotificationAction } from '../enums/notification-action.enum';
+import { NotificationEntity } from '../enums/notification-entity.enum';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
     @InjectRepository(Users)
     private readonly usersRepository: Repository<Users>,
 
     @InjectRepository(Roles)
     private readonly rolesRepository: Repository<Roles>,
+
+    private readonly notificationsService: NotificationsService,
   ) { }
+
+  // =====================================================
+  // NOTIFICAR (nunca debe romper el CRUD)
+  // =====================================================
+
+  private async notify(
+    actorUserId: number,
+    action: NotificationAction,
+    referenceId: number,
+    entityName: string,
+  ) {
+    try {
+      await this.notificationsService.create(
+        actorUserId,
+        NotificationEntity.USER,
+        action,
+        referenceId,
+        entityName,
+        '/users',
+      );
+    } catch (error) {
+      this.logger.error(
+        'No se pudo crear la notificación',
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+  }
 
   // =====================================================
   // RESPUESTA PÚBLICA DEL PERFIL
@@ -55,10 +86,7 @@ export class UsersService {
       job_position: user.job_position,
       role_id: user.role?.id,
       role: user.role
-        ? {
-          id: user.role.id,
-          name: user.role.name,
-        }
+        ? { id: user.role.id, name: user.role.name }
         : null,
     }));
   }
@@ -77,17 +105,14 @@ export class UsersService {
   // CREAR USUARIO
   // =====================================================
 
-  async create(dto: CreateUsersDto) {
+  async create(dto: CreateUsersDto, actorUserId: number) {
     const idCard = dto.id_card.trim();
     const name = dto.name.trim();
     const email = dto.email.trim().toLowerCase();
     const jobPosition = dto.job_position.trim();
 
     const existing = await this.usersRepository.findOne({
-      where: [
-        { id_card: idCard },
-        { email },
-      ],
+      where: [{ id_card: idCard }, { email }],
     });
 
     if (existing) {
@@ -117,6 +142,13 @@ export class UsersService {
 
     const saved = await this.usersRepository.save(user);
 
+    await this.notify(
+      actorUserId,
+      NotificationAction.CREATED,
+      saved.id,
+      saved.name,
+    );
+
     return {
       message: 'Usuario creado correctamente.',
       user: {
@@ -126,10 +158,7 @@ export class UsersService {
         email: saved.email,
         job_position: saved.job_position,
         role_id: role.id,
-        role: {
-          id: role.id,
-          name: role.name,
-        },
+        role: { id: role.id, name: role.name },
       },
     };
   }
@@ -138,7 +167,7 @@ export class UsersService {
   // EDITAR USUARIO
   // =====================================================
 
-  async update(id: number, dto: UpdateUsersDto) {
+  async update(id: number, dto: UpdateUsersDto, actorUserId: number) {
     const user = await this.usersRepository.findOne({
       where: { id },
       relations: { role: true },
@@ -206,6 +235,13 @@ export class UsersService {
       throw new NotFoundException('Usuario no encontrado.');
     }
 
+    await this.notify(
+      actorUserId,
+      NotificationAction.UPDATED,
+      updated.id,
+      updated.name,
+    );
+
     return {
       message: 'Usuario actualizado correctamente.',
       user: {
@@ -216,10 +252,7 @@ export class UsersService {
         job_position: updated.job_position,
         role_id: updated.role?.id,
         role: updated.role
-          ? {
-            id: updated.role.id,
-            name: updated.role.name,
-          }
+          ? { id: updated.role.id, name: updated.role.name }
           : null,
       },
     };
@@ -229,7 +262,7 @@ export class UsersService {
   // ELIMINAR USUARIO
   // =====================================================
 
-  async remove(id: number) {
+  async remove(id: number, actorUserId: number) {
     const user = await this.usersRepository.findOne({
       where: { id },
     });
@@ -237,6 +270,10 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('Usuario no encontrado.');
     }
+
+    // Guardar datos antes de eliminar
+    const userId = user.id;
+    const userName = user.name;
 
     try {
       await this.usersRepository.remove(user);
@@ -251,10 +288,19 @@ export class UsersService {
       }
       throw error;
     }
+
+    await this.notify(
+      actorUserId,
+      NotificationAction.DELETED,
+      userId,
+      userName,
+    );
+
     return {
       message: 'Usuario eliminado correctamente.',
     };
   }
+
   // =====================================================
   // OBTENER PERFIL
   // =====================================================
@@ -266,9 +312,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException(
-        'Usuario no encontrado',
-      );
+      throw new NotFoundException('Usuario no encontrado');
     }
     return this.formatUser(user);
   }
@@ -277,16 +321,14 @@ export class UsersService {
   // ACTUALIZAR PERFIL
   // =====================================================
 
-  async updateProfile(userId: number, dto: UpdateProfileDto,) {
+  async updateProfile(userId: number, dto: UpdateProfileDto) {
     const user = await this.usersRepository.findOne({
       where: { id: userId },
       relations: { role: true },
     });
 
     if (!user) {
-      throw new NotFoundException(
-        'Usuario no encontrado',
-      );
+      throw new NotFoundException('Usuario no encontrado');
     }
 
     const hasChanges =
@@ -304,9 +346,7 @@ export class UsersService {
       const name = dto.name.trim();
 
       if (!name) {
-        throw new BadRequestException(
-          'El nombre no puede estar vacío',
-        );
+        throw new BadRequestException('El nombre no puede estar vacío');
       }
       user.name = name;
     }
@@ -315,9 +355,7 @@ export class UsersService {
       const jobPosition = dto.job_position.trim();
 
       if (!jobPosition) {
-        throw new BadRequestException(
-          'El cargo no puede estar vacío',
-        );
+        throw new BadRequestException('El cargo no puede estar vacío');
       }
       user.job_position = jobPosition;
     }
@@ -326,15 +364,12 @@ export class UsersService {
       const email = dto.email.trim().toLowerCase();
 
       if (!email) {
-        throw new BadRequestException(
-          'El correo no puede estar vacío',
-        );
+        throw new BadRequestException('El correo no puede estar vacío');
       }
 
-      const existingUser =
-        await this.usersRepository.findOne({
-          where: { email },
-        });
+      const existingUser = await this.usersRepository.findOne({
+        where: { email },
+      });
 
       if (existingUser && existingUser.id !== userId) {
         throw new BadRequestException(
@@ -344,11 +379,8 @@ export class UsersService {
       user.email = email;
     }
 
-    const updatedUser =
-      await this.usersRepository.save(user);
+    const updatedUser = await this.usersRepository.save(user);
 
-    // Consultar nuevamente para devolver el perfil
-    // con la relación del rol correctamente cargada.
     const result = await this.usersRepository.findOne({
       where: { id: updatedUser.id },
       relations: { role: true },
@@ -370,8 +402,7 @@ export class UsersService {
   // CAMBIAR CONTRASEÑA
   // =====================================================
 
-
-  async changePassword( userId: number, dto: ChangePasswordDto,) {
+  async changePassword(userId: number, dto: ChangePasswordDto) {
     const user = await this.usersRepository
       .createQueryBuilder('user')
       .addSelect('user.password')
@@ -379,10 +410,9 @@ export class UsersService {
       .getOne();
 
     if (!user) {
-      throw new NotFoundException( 'Usuario no encontrado.',);
+      throw new NotFoundException('Usuario no encontrado.');
     }
 
-    // Validar la contraseña actual.
     const passwordValid = await bcrypt.compare(
       dto.currentPassword,
       user.password,
@@ -400,16 +430,9 @@ export class UsersService {
       );
     }
 
-    const hashedPassword = await bcrypt.hash(
-      dto.newPassword,
-      12,
-    );
-
-    user.password = hashedPassword;
+    user.password = await bcrypt.hash(dto.newPassword, 12);
     await this.usersRepository.save(user);
 
-    return {
-      message: 'Contraseña actualizada correctamente.',
-    };
+    return {message: 'Contraseña actualizada correctamente.',};
   }
 }

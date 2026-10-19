@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  UploadedFile,
-  UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
-
+import {Controller, Get, Post, UploadedFile, UseGuards, UseInterceptors,} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 import { BirthdayImageService } from '../services/birthdayImage-service';
@@ -45,15 +37,11 @@ export class BirthdayImageController {
     RolesGuard,
   )
   @Roles('ADMINISTRADOR')
-  @UseInterceptors(
-    FileInterceptor('image'),
-  )
+  @UseInterceptors(FileInterceptor('image'),)
   async uploadImage(
     @UploadedFile()
     file: Express.Multer.File,
   ) {
-    return this.birthdayImageService.saveImageName(
-      file.filename,
-    );
+    return this.birthdayImageService.saveImageName(file.filename,);
   }
 }

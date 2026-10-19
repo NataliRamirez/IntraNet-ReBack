@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import {Body, Controller, Delete, Get, Param, Patch, Post, UseGuards,} from '@nestjs/common';
 
 import { EmployeeService } from '../services/employee-service';
 
@@ -19,10 +10,7 @@ import { RolesGuard } from '../guards/roles-guard';
 import { Roles } from '../decorators/roles-decorator';
 
 @Controller('employee')
-@UseGuards(
-  JwtAuthGuard,
-  RolesGuard,
-)
+@UseGuards(JwtAuthGuard, RolesGuard,)
 @Roles('ADMINISTRADOR')
 export class EmployeeController {
   constructor(
@@ -38,9 +26,7 @@ export class EmployeeController {
   async findOne(
     @Param('id') id: string,
   ) {
-    return this.employeeService.findOne(
-      Number(id),
-    );
+    return this.employeeService.findOne(Number(id),);
   }
 
   @Post()
@@ -48,9 +34,7 @@ export class EmployeeController {
     @Body()
     createEmployeeDto: CreateEmployeeDto,
   ) {
-    return this.employeeService.create(
-      createEmployeeDto,
-    );
+    return this.employeeService.create(createEmployeeDto,);
   }
 
   @Patch(':id')
@@ -59,18 +43,13 @@ export class EmployeeController {
     @Body()
     updateEmployeeDto: UpdateEmployeeDto,
   ) {
-    return this.employeeService.update(
-      Number(id),
-      updateEmployeeDto,
-    );
+    return this.employeeService.update(Number(id),updateEmployeeDto,);
   }
 
   @Delete(':id')
   async remove(
     @Param('id') id: string,
   ) {
-    return this.employeeService.remove(
-      Number(id),
-    );
+    return this.employeeService.remove(Number(id),);
   }
 }

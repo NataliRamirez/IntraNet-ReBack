@@ -1,17 +1,4 @@
-
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Req,
-  UploadedFile,
-  UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
+import {Body, Controller, Delete, Get, Param, Patch, Post, Req, UploadedFile, UseGuards, UseInterceptors,} from '@nestjs/common';
 
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -75,10 +62,7 @@ export class EventsController {
       createEventDto.image = file.filename;
     }
 
-    return this.eventsService.create(
-      createEventDto,
-      req.user,
-    );
+    return this.eventsService.create(createEventDto,req.user,);
   }
 
   // Actualizar evento
@@ -96,11 +80,7 @@ export class EventsController {
       updateEventDto.image = file.filename;
     }
 
-    return this.eventsService.update(
-      Number(id),
-      updateEventDto,
-      req.user,
-    );
+    return this.eventsService.update(Number(id), updateEventDto, req.user,);
   }
 
   // Eliminar evento
@@ -111,9 +91,6 @@ export class EventsController {
     @Param('id') id: string,
     @Req() req: any,
   ) {
-    return this.eventsService.remove(
-      Number(id),
-      req.user,
-    );
+    return this.eventsService.remove(Number(id), req.user,);
   }
 }

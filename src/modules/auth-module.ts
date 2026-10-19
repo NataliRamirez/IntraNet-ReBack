@@ -14,17 +14,10 @@ import { Roles } from '../entities/roles-entity';
 @Module({
   imports: [
     PassportModule,
-
     ConfigModule,
-
-    TypeOrmModule.forFeature([
-      Users,
-      Roles,
-    ]),
-
+    TypeOrmModule.forFeature([Users,Roles,]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
-
       inject: [ConfigService],
 
       useFactory: (configService: ConfigService) => ({
@@ -32,25 +25,12 @@ import { Roles } from '../entities/roles-entity';
           'JWT_SECRET',
         ),
 
-        signOptions: {
-          expiresIn: '1h',
-        },
+        signOptions: {expiresIn: '1h',},
       }),
     }),
   ],
-
-  controllers: [
-    AuthController,
-  ],
-
-  providers: [
-    AuthService,
-    JwtStrategy,
-  ],
-
-  exports: [
-    AuthService,
-    JwtModule,
-  ],
+  controllers: [AuthController,],
+  providers: [AuthService,JwtStrategy,],
+  exports: [AuthService,JwtModule,],
 })
 export class AuthModule {}

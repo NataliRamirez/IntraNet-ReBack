@@ -1,20 +1,8 @@
-import {
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
-
-import {
-  InjectRepository,
-} from '@nestjs/typeorm';
-
-import {
-  Repository,
-} from 'typeorm';
-
+import {Injectable, UnauthorizedException,} from '@nestjs/common';
+import {InjectRepository,} from '@nestjs/typeorm';
+import {Repository,} from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
-
 import * as bcrypt from 'bcrypt';
-
 import { Users } from '../entities/users-entity';
 
 @Injectable()
@@ -29,15 +17,10 @@ export class AuthService {
   /**
    * Busca al usuario por correo y verifica su contraseña.
    */
-  async validateUser(
-    email: string,
-    password: string,
-  ): Promise<Users | null> {
+  async validateUser( email: string, password: string,): Promise<Users | null> {
     if (
-      !email ||
-      typeof email !== 'string' ||
-      !password ||
-      typeof password !== 'string'
+      !email || typeof email !== 'string' ||
+      !password || typeof password !== 'string'
     ) {
       return null;
     }
@@ -57,18 +40,13 @@ export class AuthService {
       return null;
     }
 
-    const passwordValid = await bcrypt.compare(
-      password,
-      user.password,
-    );
+    const passwordValid = await bcrypt.compare( password, user.password,);
 
     if (!passwordValid) {
       return null;
     }
 
-    // No devolver el hash en el objeto validado.
     user.password = '';
-
     return user;
   }
 
@@ -96,15 +74,10 @@ export class AuthService {
   /**
    * Verifica una contraseña contra un hash existente.
    */
-  async validatePassword(
-    password: string,
-    hashedPassword: string,
-  ): Promise<boolean> {
+  async validatePassword(password: string, hashedPassword: string,): Promise<boolean> {
     if (
-      !password ||
-      typeof password !== 'string' ||
-      !hashedPassword ||
-      typeof hashedPassword !== 'string'
+      !password || typeof password !== 'string' ||
+      !hashedPassword || typeof hashedPassword !== 'string'
     ) {
       return false;
     }

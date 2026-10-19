@@ -1,10 +1,4 @@
-import {
-  Body,
-  Controller,
-  Post,
-  UnauthorizedException,
-} from '@nestjs/common';
-
+import {Body, Controller, Post, UnauthorizedException,} from '@nestjs/common';
 import { AuthService } from '../services/auth-service';
 
 @Controller('auth')
@@ -21,11 +15,8 @@ export class AuthController {
       password: string;
     },
   ) {
-    const user =
-      await this.authService.validateUser(
-        body.email,
-        body.password,
-      );
+    
+    const user = await this.authService.validateUser(body.email, body.password,);
 
     if (!user) {
       throw new UnauthorizedException(

@@ -6,9 +6,7 @@ import {
 
 /**
  * DTO utilizado para la actualización de empleados.
- *
- * Permite modificar parcialmente la información
- * de un empleado registrado.
+ * Permite modificar parcialmente la información de un empleado registrado.
  */
 export class UpdateEmployeeDto {
 

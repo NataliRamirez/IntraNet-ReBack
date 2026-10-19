@@ -1,4 +1,3 @@
-
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -8,18 +7,9 @@ import { EmployeeController } from '../controllers/employee-controller';
 import { PublicEmployeeController } from '../controllers/public-employee-controller';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Employee]),
-  ],
-  providers: [
-    EmployeeService,
-  ],
-  controllers: [
-    EmployeeController,
-    PublicEmployeeController,
-  ],
-  exports: [
-    EmployeeService,
-  ],
+  imports: [TypeOrmModule.forFeature([Employee]),],
+  providers: [EmployeeService,],
+  controllers: [EmployeeController,PublicEmployeeController,],
+  exports: [EmployeeService,],
 })
 export class EmployeeModule {}

@@ -1,14 +1,8 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-
+import {Injectable,NotFoundException,} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-
+import { In, Repository } from 'typeorm';
 import { Notifications } from '../entities/notifications-entity';
 import { Users } from '../entities/users-entity';
-
 import { NotificationAction } from '../enums/notification-action.enum';
 import { NotificationEntity } from '../enums/notification-entity.enum';
 import { UserRole } from '../enums/user-role.enum';
@@ -35,107 +29,103 @@ export class NotificationsService {
     entityName: string,
     link: string,
   ) {
-    // Buscar quién realizó la acción
-    const actor = await this.usersRepository.findOne({
+
+    const actor = await this.usersRepository.findOne({where: { id: actorUserId }, relations: ['role']});
+
+    if (!actor) {
+      throw new NotFoundException('No se encontró el usuario que realizó la acción',);
+    }
+
+    // ¿Es contenido (noticia/evento)?
+    const isContent =
+      entityType === NotificationEntity.NEWS ||
+      entityType === NotificationEntity.EVENT;
+
+    // Roles que reciben la notificación interna
+    const allowedRoles = isContent
+      ? [UserRole.ADMINISTRADOR, UserRole.COMUNICACIONES]
+      : [UserRole.ADMINISTRADOR];
+
+    const staff = await this.usersRepository.find({
       where: {
-        id: actorUserId,
+        role: { name: In(allowedRoles),},
       },
       relations: ['role'],
     });
 
-    if (!actor) {
-      throw new NotFoundException(
-        'No se encontró el usuario que realizó la acción',
-      );
+    // El actor no recibe su propia notificación
+    const recipients = staff.filter((user) => user.id !== actorUserId,);
+
+    // Texto según el tipo de entidad
+    let entityText = 'usuario';
+
+    if (entityType === NotificationEntity.NEWS) {
+      entityText = 'noticia';
+    } else if (entityType === NotificationEntity.EVENT) {
+      entityText = 'evento';
+    } else if (entityType === NotificationEntity.EMPLOYEE) {
+      entityText = 'empleado';
     }
 
-    // Buscar todos los administradores
-    const administrators =
-      await this.usersRepository.find({
-        where: {
-          role: {
-            name: UserRole.ADMINISTRADOR,
-          },
-        },
-        relations: ['role'],
-      });
-
-    // Si no hay administradores, no se crea nada
-    if (administrators.length === 0) {
-      return [];
-    }
-
-    // Si el actor es administrador,
-    // no se le envía la notificación a sí mismo.
-    const recipients =
-      administrators.filter(
-        (user) => user.id !== actorUserId,
-      );
-
-    // Generar información de la notificación
-    const entityText =
-      entityType === NotificationEntity.NEWS
-        ? 'noticia'
-        : 'evento';
-
+    // Título y mensaje según la acción
     let title = '';
     let message = '';
 
     switch (action) {
       case NotificationAction.CREATED:
-        title = `${entityText} creada`;
-        message =
-          `${actor.name} creó la ${entityText} "${entityName}".`;
+        title = `Se creó un ${entityText}`;
+        message = `${actor.name} creó el ${entityText} "${entityName}".`;
         break;
 
       case NotificationAction.UPDATED:
-        title = `${entityText} modificada`;
-        message =
-          `${actor.name} modificó la ${entityText} "${entityName}".`;
+        title = `Se modificó un ${entityText}`;
+        message = `${actor.name} modificó el ${entityText} "${entityName}".`;
         break;
 
       case NotificationAction.DELETED:
-        title = `${entityText} eliminada`;
-        message =
-          `${actor.name} eliminó la ${entityText} "${entityName}".`;
+        title = `Se eliminó un ${entityText}`;
+        message = `${actor.name} eliminó el ${entityText} "${entityName}".`;
         break;
     }
 
-    const notifications =
-      recipients.map((recipient) =>
+    // Notificaciones internas (una por destinatario)
+    const notifications = recipients.map((recipient) =>
+      this.notificationsRepository.create({
+        user_id: recipient.id,
+        actor_user_id: actor.id,
+        entity_type: entityType,
+        action,
+        reference_id: referenceId,
+        title,
+        message,
+        link,
+        is_read: false,
+      }),
+    );
+
+    // Notificación pública: solo cuando se crea una noticia o evento
+    if (isContent && action === NotificationAction.CREATED) {
+      notifications.push(
         this.notificationsRepository.create({
-          user_id: recipient.id,
-
-          actor_user_id: actor.id,
-
+          user_id: null,
+          actor_user_id: null,
           entity_type: entityType,
-
           action,
-
           reference_id: referenceId,
-
-          title,
-
-          message,
-
+          title: `Nuevo ${entityText} publicado`,
+          message: `Se publicó el ${entityText} "${entityName}".`,
           link,
-
           is_read: false,
         }),
       );
+    }
 
     if (notifications.length === 0) {
       return [];
     }
 
-    return this.notificationsRepository.save(
-      notifications,
-    );
+    return this.notificationsRepository.save(notifications);
   }
-
-  // =====================================================
-  // OBTENER TODAS
-  // =====================================================
 
   // =====================================================
   // OBTENER TODAS LAS NOTIFICACIONES
@@ -146,114 +136,70 @@ export class NotificationsService {
       .createQueryBuilder('notification')
       .leftJoinAndSelect('notification.actor', 'actor');
 
-    // Si hay un usuario autenticado, puede consultar
-    // las notificaciones públicas y las dirigidas a él.
-    if (userId !== undefined) {
+    if (userId !== undefined && userId !== null) {
       query.where(
-        'notification.user_id IS NULL OR notification.user_id = :userId',
+        '(notification.user_id IS NULL OR notification.user_id = :userId)',
         { userId },
       );
     } else {
-      // Si no hay sesión, solo consulta notificaciones públicas.
       query.where('notification.user_id IS NULL');
     }
 
-    return query
-      .orderBy('notification.created_at', 'DESC')
-      .getMany();
+    return query.orderBy('notification.created_at', 'DESC').getMany();
   }
 
   // =====================================================
   // MARCAR UNA COMO LEÍDA
   // =====================================================
 
-  async markAsRead(
-    id: number,
-    userId: number,
-  ) {
+  async markAsRead(id: number, userId: number) {
     const notification =
       await this.notificationsRepository.findOne({
-        where: {
-          id,
-        },
+        where: { id },
       });
 
     if (!notification) {
-      throw new NotFoundException(
-        'No se encontró la notificación',
-      );
+      throw new NotFoundException('No se encontró la notificación',);
     }
 
-    // Si es privada, solamente puede modificarla
-    // el usuario al que pertenece.
-    if (
-      notification.user_id !== null &&
-      notification.user_id !== userId
-    ) {
-      throw new NotFoundException(
-        'No se encontró la notificación',
-      );
+    // Si es privada, solo puede modificarla su dueño
+    if (notification.user_id !== null && notification.user_id !== userId) {
+      throw new NotFoundException('No se encontró la notificación',);
     }
 
     notification.is_read = true;
 
-    return this.notificationsRepository.save(
-      notification,
-    );
+    return this.notificationsRepository.save(notification);
   }
 
   // =====================================================
   // MARCAR TODAS COMO LEÍDAS
   // =====================================================
 
-  async markAllAsRead(
-    userId: number,
-  ) {
+  async markAllAsRead(userId: number) {
     await this.notificationsRepository.update(
-      {
-        user_id: userId,
-        is_read: false,
-      },
-      {
-        is_read: true,
-      },
+      {user_id: userId, is_read: false,},
+      {is_read: true,},
     );
 
-    return {
-      message:
-        'Todas las notificaciones fueron marcadas como leídas',
-    };
+    return {message:'Todas las notificaciones fueron marcadas como leídas',};
   }
 
   // =====================================================
   // ELIMINAR UNA NOTIFICACIÓN
   // =====================================================
 
-  async remove(
-    id: number,
-    userId: number,
-  ) {
+  async remove(id: number, userId: number) {
     const notification =
       await this.notificationsRepository.findOne({
-        where: {
-          id,
-          user_id: userId,
-        },
+        where: {id,user_id: userId,},
       });
 
     if (!notification) {
-      throw new NotFoundException(
-        'No se encontró la notificación',
-      );
+      throw new NotFoundException('No se encontró la notificación',);
     }
 
-    await this.notificationsRepository.remove(
-      notification,
-    );
-
-    return {
-      message:
-        'Notificación eliminada correctamente',
-    };
+    await this.notificationsRepository.remove(notification);
+    return {message: 'Notificación eliminada correctamente',};
   }
 }

@@ -1,15 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Patch,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import {Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req, UseGuards,} from '@nestjs/common';
 
 import { Request } from 'express';
 
@@ -25,11 +14,7 @@ import { UpdateUsersDto } from '../DTOs/update-users-dto';
 import { UpdateProfileDto } from '../DTOs/update-profile-dto';
 import { ChangePasswordDto } from '../DTOs/change-password-dto';
 
-interface AuthenticatedRequest extends Request {
-  user: {
-    id: number;
-  };
-}
+interface AuthenticatedRequest extends Request {user: {id: number; }; }
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -39,22 +24,35 @@ export class UsersController {
   ) { }
 
   // =====================================================
-  // LISTAR TODOS LOS USUARIOS
-  // GET /users
-  // Solo ADMINISTRADOR
+  // OBTENER PERFIL DEL USUARIO AUTENTICADO
   // =====================================================
 
-  @Get()
-  @UseGuards(RolesGuard)
-  @AllowedRoles('ADMINISTRADOR')
-  findAll() {
-    return this.usersService.findAll();
+  @Get('profile')
+  getProfile(@Req() req: AuthenticatedRequest) {
+    return this.usersService.getProfile(req.user.id);
+  }
+
+  // =====================================================
+  // ACTUALIZAR PERFIL
+  // =====================================================
+
+  @Patch('profile')
+  updateProfile(@Req() req: AuthenticatedRequest, @Body() dto: UpdateProfileDto,) {
+    return this.usersService.updateProfile(req.user.id, dto);
+  }
+
+  // =====================================================
+  // CAMBIAR CONTRASEÑA
+  // =====================================================
+
+  @Patch('password')
+  changePassword(@Req() req: AuthenticatedRequest, @Body() dto: ChangePasswordDto,) {
+    return this.usersService.changePassword(req.user.id, dto);
   }
 
   // =====================================================
   // LISTAR ROLES
-  // GET /users/roles
-  // Solo ADMINISTRADOR
+  // ADMINISTRADOR
   // =====================================================
 
   @Get('roles')
@@ -65,94 +63,52 @@ export class UsersController {
   }
 
   // =====================================================
+  // LISTAR TODOS LOS USUARIOS
+  // ADMINISTRADOR
+  // =====================================================
+
+  @Get()
+  @UseGuards(RolesGuard)
+  @AllowedRoles('ADMINISTRADOR')
+  findAll() {
+    return this.usersService.findAll();
+  }
+
+  // =====================================================
   // CREAR USUARIO
-  // POST /users
-  // Solo ADMINISTRADOR
+  // ADMINISTRADOR
   // =====================================================
 
   @Post()
   @UseGuards(RolesGuard)
   @AllowedRoles('ADMINISTRADOR')
-  create(
-    @Body() dto: CreateUsersDto,
-  ) {
-    return this.usersService.create(dto);
+  create(@Req() req: AuthenticatedRequest, @Body() dto: CreateUsersDto,) {
+    return this.usersService.create(dto, req.user.id);
   }
 
   // =====================================================
   // EDITAR USUARIO
-  // PATCH /users/:id
-  // Solo ADMINISTRADOR
+  // ADMINISTRADOR
   // =====================================================
+
 
   @Patch(':id')
   @UseGuards(RolesGuard)
   @AllowedRoles('ADMINISTRADOR')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateUsersDto,
-  ) {
-    return this.usersService.update(id, dto);
+  update(@Req() req: AuthenticatedRequest, @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUsersDto,) {
+    return this.usersService.update(id, dto, req.user.id);
   }
 
   // =====================================================
   // ELIMINAR USUARIO
-  // DELETE /users/:id
-  // Solo ADMINISTRADOR
+  // ADMINISTRADOR
   // =====================================================
+
 
   @Delete(':id')
   @UseGuards(RolesGuard)
   @AllowedRoles('ADMINISTRADOR')
-  remove(
-    @Param('id', ParseIntPipe) id: number,
-  ) {
-    return this.usersService.remove(id);
-  }
-
-  // =====================================================
-  // OBTENER PERFIL DEL USUARIO AUTENTICADO
-  // GET /users/profile
-  // =====================================================
-
-  @Get('profile')
-  getProfile(
-    @Req() req: AuthenticatedRequest,
-  ) {
-    return this.usersService.getProfile(
-      req.user.id,
-    );
-  }
-
-  // =====================================================
-  // ACTUALIZAR PERFIL
-  // PATCH /users/profile
-  // =====================================================
-
-  @Patch('profile')
-  updateProfile(
-    @Req() req: AuthenticatedRequest,
-    @Body() dto: UpdateProfileDto,
-  ) {
-    return this.usersService.updateProfile(
-      req.user.id,
-      dto,
-    );
-  }
-
-  // =====================================================
-  // CAMBIAR CONTRASEÑA
-  // PATCH /users/password
-  // =====================================================
-
-  @Patch('password')
-  changePassword(
-    @Req() req: AuthenticatedRequest,
-    @Body() dto: ChangePasswordDto,
-  ) {
-    return this.usersService.changePassword(
-      req.user.id,
-      dto,
-    );
+  remove(@Req() req: AuthenticatedRequest, @Param('id', ParseIntPipe) id: number,) {
+    return this.usersService.remove(id, req.user.id);
   }
 }

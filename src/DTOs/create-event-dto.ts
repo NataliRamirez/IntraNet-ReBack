@@ -1,10 +1,4 @@
-import {
-  IsString,
-  IsNotEmpty,
-  IsOptional,
-  IsDateString,
-  IsUrl,
-} from 'class-validator';
+import {IsString, IsNotEmpty, IsOptional, IsDateString, IsUrl,} from 'class-validator';
 
 /**
  * DTO utilizado para la creación de eventos.

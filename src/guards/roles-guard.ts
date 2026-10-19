@@ -1,9 +1,4 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import {CanActivate, ExecutionContext, ForbiddenException, Injectable,} from '@nestjs/common';
 
 import { Reflector } from '@nestjs/core';
 
@@ -14,9 +9,7 @@ export class RolesGuard implements CanActivate {
     private readonly reflector: Reflector,
   ) {}
 
-  canActivate(
-    context: ExecutionContext,
-  ): boolean {
+  canActivate(context: ExecutionContext,): boolean {
 
     const requiredRoles =
       this.reflector.getAllAndOverride<string[]>(
@@ -31,38 +24,27 @@ export class RolesGuard implements CanActivate {
      * Si el endpoint no tiene @Roles(),
      * no se requiere ningún rol específico.
      */
-    if (
-      !requiredRoles ||
-      requiredRoles.length === 0
-    ) {
+    if (!requiredRoles || requiredRoles.length === 0) {
       return true;
     }
 
-    const request =
-      context.switchToHttp().getRequest();
-
+    const request = context.switchToHttp().getRequest();
     const user = request.user;
 
     /**
      * Verifica que exista un usuario autenticado.
      */
     if (!user) {
-      throw new ForbiddenException(
-        'Usuario no autenticado',
-      );
+      throw new ForbiddenException('Usuario no autenticado',);
     }
 
     /**
-     * Verifica que el rol del usuario
-     * esté permitido para el endpoint.
+     * Verifica que el rol del usuario esté permitido para el endpoint.
      */
-    const hasRole =
-      requiredRoles.includes(user.role);
+    const hasRole = requiredRoles.includes(user.role);
 
     if (!hasRole) {
-      throw new ForbiddenException(
-        'No tienes permisos para acceder a este recurso',
-      );
+      throw new ForbiddenException('No tienes permisos para acceder a este recurso',);
     }
 
     return true;

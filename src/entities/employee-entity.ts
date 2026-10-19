@@ -2,9 +2,6 @@ import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 /**
  * Entidad que representa a un empleado dentro del sistema.
- *
- * Almacena la información básica de los colaboradores registrados en la Intranet, incluyendo datos personales
- * y laborales.
  */
 @Entity('employee')
 export class Employee {

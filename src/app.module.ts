@@ -27,7 +27,6 @@ import { AuthModule } from './modules/auth-module';
       isGlobal: true,
     }),
 
-
     TypeOrmModule.forRoot({
 
       type: 'mysql',
@@ -46,7 +45,6 @@ import { AuthModule } from './modules/auth-module';
 
       synchronize: false,
     }),
-
 
     EventsModule,
 

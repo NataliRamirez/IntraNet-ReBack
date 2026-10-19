@@ -1,4 +1,3 @@
-
 import { Controller, Get } from '@nestjs/common';
 import { EmployeeService } from '../services/employee-service';
 
@@ -6,7 +5,11 @@ import { EmployeeService } from '../services/employee-service';
 export class PublicEmployeeController {
   constructor(
     private readonly employeeService: EmployeeService,
-  ) {}
+  ) { }
+
+  // ==========================================
+  // CONSULTAR CUMPLEAÑOS  
+  // ==========================================
 
   @Get('birthdays/today')
   async findBirthdaysToday() {

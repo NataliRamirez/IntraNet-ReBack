@@ -1,13 +1,7 @@
-import {
-  IsEmail,
-  IsOptional,
-  IsString,
-  MaxLength,
-} from 'class-validator';
+import {IsEmail, IsOptional, IsString, MaxLength,} from 'class-validator';
 
 /**
- * DTO utilizado para actualizar el perfil
- * del usuario autenticado.
+ * DTO utilizado para actualizar el perfil del usuario autenticado.
  */
 export class UpdateProfileDto {
 
