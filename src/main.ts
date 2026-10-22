@@ -120,6 +120,7 @@ async function bootstrap() {
         '/public/employees',
         '/users',
         '/birthday-image',
+        '/terms-acceptance',
         '/uploads',
       ];
 
@@ -154,7 +155,7 @@ async function bootstrap() {
   const PORT = Number(process.env.PORT,) || 3002;
   const HOST = process.env.HOST || '0.0.0.0';
 
-  await app.listen(PORT,HOST,);
+  await app.listen(PORT, HOST,);
 
   console.log(
     `Servidor corriendo en http://${HOST}:${PORT}`,

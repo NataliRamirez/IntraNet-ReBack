@@ -16,19 +16,11 @@ export class EventsService {
     private readonly notificationsService: NotificationsService,
   ) {}
 
-  // =====================================================
-  // OBTENER TODOS
-  // =====================================================
-
   async findAll() {
     return this.eventsRepository.find({
       order: {date_time: 'ASC',},
     });
   }
-
-  // =====================================================
-  // OBTENER UNO
-  // =====================================================
 
   async findOne(id: number) {
     const event = await this.eventsRepository.findOne({
@@ -42,15 +34,10 @@ export class EventsService {
     return event;
   }
 
-  // =====================================================
-  // CREAR
-  // =====================================================
-
   async create(createEventDto: CreateEventDto,actorUser: any,) {
     const event = this.eventsRepository.create(createEventDto,);
     const savedEvent = await this.eventsRepository.save( event,);
 
-    // Notificaciones para administradores
     await this.notificationsService.create(
       actorUser.id,
       NotificationEntity.EVENT,
@@ -62,10 +49,6 @@ export class EventsService {
 
     return savedEvent;
   }
-
-  // =====================================================
-  // EDITAR
-  // =====================================================
 
   async update(id: number,updateEventDto: UpdateEventDto,actorUser: any,) {
     const event = await this.eventsRepository.findOne({
@@ -91,14 +74,9 @@ export class EventsService {
     return updatedEvent;
   }
 
-  // =====================================================
-  // ELIMINAR
-  // =====================================================
 
   async remove(id: number, actorUser: any,) {
-    const event = await this.eventsRepository.findOne({
-        where: {id,},
-      });
+    const event = await this.eventsRepository.findOne({where: {id,},});
 
     if (!event) {
       throw new NotFoundException('No se encontró el evento',);

@@ -1,142 +1,185 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException,} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { Employee } from '../entities/employee-entity';
 import { CreateEmployeeDto } from '../DTOs/create-employee-dto';
 import { UpdateEmployeeDto } from '../DTOs/update-employee-dto';
-import { ConflictException } from '@nestjs/common';
+import { NotificationsService } from './notifications-service';
+import { NotificationAction } from '../enums/notification-action.enum';
+import { NotificationEntity } from '../enums/notification-entity.enum';
 
-/**
- * Servicio encargado de la gestión de empleados.
- * Proporciona la lógica de negocio necesaria para realizar operaciones CRUD sobre los empleados registrados
- */
 @Injectable()
 export class EmployeeService {
   constructor(
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
+    private readonly notificationsService: NotificationsService,
   ) { }
 
-  /**
-   * Obtiene todos los empleados registrados.
-   * 
-   * @returns {Promise<Employee[]>} Lista completa de empleados.
-   */
   async findAll(): Promise<Employee[]> {
-    return this.employeeRepository.find();
-  }
-
-  /**
-  * Busca empleados cuyo nombre coincida parcial o totalmente
-  * con el criterio recibido.
-  *
-  * @param {string} name Nombre o fragmento del nombre a buscar.
-  * @returns {Promise<Employee[]>} Lista de empleados que coinciden con el criterio.
-  */
-  async findByName(name: string): Promise<Employee[]> {
     return this.employeeRepository.find({
-      where: {
-        name: Like(`%${name}%`)
-      },
+      order: { name: 'ASC' },
     });
   }
 
-  /**
-  * Obtiene un empleado a partir de su identificador.
-  *
-  * @param {number} id Identificador único del empleado.
-  * @returns {Promise<Employee>} Información del empleado encontrado.
-  * @throws {NotFoundException} Si el empleado no existe.
-  */
+  async findByName(name: string): Promise<Employee[]> {
+    return this.employeeRepository.find({
+      where: {
+        name: Like(`%${name}%`),
+      },
+      order: { name: 'ASC' },
+    });
+  }
+
   async findOne(id: number): Promise<Employee> {
-    const employee = await this.employeeRepository.findOne({ where: { id } });
-    if (!employee) throw new NotFoundException(`Empleado con ID ${id} no encontrado`);
+    const employee = await this.employeeRepository.findOne({
+      where: { id },
+    });
+
+    if (!employee) {
+      throw new NotFoundException(
+        `Empleado con ID ${id} no encontrado`,
+      );
+    }
+
     return employee;
   }
 
-  /**
-  * Crea un nuevo empleado.
-  * Convierte la fecha de cumpleaños recibida en formato de texto a un objeto Date antes de almacenarla.
-  *
-  * @param {CreateEmployeeDto} dto Datos necesarios para registrar un empleado.
-  * @returns {Promise<Employee>} Empleado creado exitosamente.
-  */
-  async create(dto: CreateEmployeeDto): Promise<Employee> {
-    try {
-      const neww = this.employeeRepository.create({
-        ...dto,
-        birthday: new Date(dto.birthday),
-      });
+  // =====================================================
+  // CONVERTIR FECHA SIN CAMBIAR EL DÍA
+  // =====================================================
 
-      return await this.employeeRepository.save(neww);
-    } catch (error: any) {
-      if (error.code === 'ER_DUP_ENTRY') {
-        throw new ConflictException('El número de documento ya está registrado',);
+  private normalizeBirthday(birthday: string | Date): string {
+    if (typeof birthday === 'string') {
+      // Si viene como YYYY-MM-DD, conservar exactamente ese día.
+      const match = birthday.match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+      if (match) {
+        return `${match[1]}-${match[2]}-${match[3]}`;
       }
-
-      throw error;
     }
+
+    const date = new Date(birthday);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 
-  /**
-  * Actualiza la información de un empleado existente.
-  *
-  * @param {number} id Identificador del empleado.
-  * @param {UpdateEmployeeDto} dto Datos a actualizar.
-  * @returns {Promise<Employee>} Empleado actualizado.
-  * @throws {NotFoundException} Si el empleado no existe.
-  */
-  async update(id: number, dto: UpdateEmployeeDto,): Promise<Employee> {
-    try {
-      const employee = await this.findOne(id);
 
-      Object.assign( employee, {
-          ...dto,
-          ...(dto.birthday !== undefined ? { birthday: new Date( dto.birthday,), } : {}),
-        },
+  async create(
+    dto: CreateEmployeeDto,
+    actorUser: any,
+  ): Promise<Employee> {
+    try {
+      const employeeData: any = { ...dto };
+
+      if (dto.birthday) {
+        employeeData.birthday = this.normalizeBirthday(dto.birthday);
+      }
+
+      const newEmployee = this.employeeRepository.create();
+      Object.assign(newEmployee, employeeData);
+
+      const savedEmployee = await this.employeeRepository.save(newEmployee,);
+
+      await this.notificationsService.create(
+        actorUser.id,
+        NotificationEntity.EMPLOYEE,
+        NotificationAction.CREATED,
+        savedEmployee.id,
+        savedEmployee.name,
+        '/admin/employees',
       );
 
-      return await this.employeeRepository.save( employee,);
-
+      return savedEmployee;
     } catch (error: any) {
-
       if (error.code === 'ER_DUP_ENTRY') {
-        throw new ConflictException('El número de documento ya está registrado',);
+        throw new ConflictException('El número de documento ya está registrado.',);
       }
 
       throw error;
     }
   }
 
-  /**
-  * Elimina un empleado del sistema.
-  *
-  * @param {number} id Identificador del empleado a eliminar.
-  * @returns {Promise<void>}
-  * @throws {NotFoundException} Si el empleado no existe.
-  */
-  async remove(id: number): Promise<void> {
+  async update(
+    id: number,
+    dto: UpdateEmployeeDto,
+    actorUser: any,
+  ): Promise<Employee> {
     try {
       const employee = await this.findOne(id);
-      await this.employeeRepository.remove(employee);
+      const employeeData: any = { ...dto };
+
+      if (dto.birthday) {
+        employeeData.birthday = this.normalizeBirthday(dto.birthday);
+      }
+
+      Object.assign(employee, employeeData);
+
+      const updatedEmployee = await this.employeeRepository.save(employee,);
+
+      await this.notificationsService.create(
+        actorUser.id,
+        NotificationEntity.EMPLOYEE,
+        NotificationAction.UPDATED,
+        updatedEmployee.id,
+        updatedEmployee.name,
+        '/admin/employees',
+      );
+
+      return updatedEmployee;
     } catch (error: any) {
+      if (error.code === 'ER_DUP_ENTRY') {
+        throw new ConflictException('El número de documento ya está registrado.',);
+      }
+
       throw error;
     }
   }
 
-  /**
-   * Obtiene los empleados que cumplen años hoy.
-   */
+  async remove(
+    id: number,
+    actorUser: any,
+  ): Promise<{ message: string }> {
+    const employee = await this.findOne(id);
+
+    // Guardar los datos
+    const employeeId = employee.id;
+    const employeeName = employee.name;
+
+    await this.employeeRepository.remove(employee);
+
+    await this.notificationsService.create(
+      actorUser.id,
+      NotificationEntity.EMPLOYEE,
+      NotificationAction.DELETED,
+      employeeId,
+      employeeName,
+      '/admin/employees',
+    );
+
+    return {
+      message: 'Empleado eliminado correctamente.',
+    };
+  }
+
   async findBirthdaysToday(): Promise<
-    Pick<Employee, 'name' | 'job_position' | 'area' | 'birthday'>[]
+    Pick<
+      Employee,
+      'id' | 'name' | 'job_position' | 'area' | 'birthday' | 'image'
+    >[]
   > {
     return this.employeeRepository
       .createQueryBuilder('employee')
       .select([
+        'employee.id',
         'employee.name',
         'employee.job_position',
         'employee.area',
         'employee.birthday',
+        'employee.image',
       ])
       .where('MONTH(employee.birthday) = MONTH(CURDATE())')
       .andWhere('DAY(employee.birthday) = DAY(CURDATE())')

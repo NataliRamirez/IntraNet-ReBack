@@ -1,8 +1,5 @@
-import {IsString, IsNotEmpty, IsDateString,} from 'class-validator';
+import { IsString, IsNotEmpty, IsDateString, IsOptional} from 'class-validator';
 
-/**
- * DTO utilizado para la creación de empleados.
- */
 export class CreateEmployeeDto {
 
   @IsString()
@@ -23,4 +20,8 @@ export class CreateEmployeeDto {
 
   @IsDateString()
   birthday!: string;
+
+  @IsOptional()
+  @IsString()
+  image?: string;
 }

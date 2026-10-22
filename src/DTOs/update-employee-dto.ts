@@ -1,13 +1,5 @@
-import {
-  IsOptional,
-  IsString,
-  IsDateString,
-} from 'class-validator';
+import {IsOptional,IsString,IsDateString,} from 'class-validator';
 
-/**
- * DTO utilizado para la actualización de empleados.
- * Permite modificar parcialmente la información de un empleado registrado.
- */
 export class UpdateEmployeeDto {
 
   @IsOptional()
@@ -29,4 +21,8 @@ export class UpdateEmployeeDto {
   @IsOptional()
   @IsDateString()
   birthday?: string;
+
+  @IsOptional()
+  @IsString()
+  image?: string;
 }

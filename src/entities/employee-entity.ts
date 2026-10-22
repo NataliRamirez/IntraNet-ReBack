@@ -1,8 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-/**
- * Entidad que representa a un empleado dentro del sistema.
- */
 @Entity('employee')
 export class Employee {
 
@@ -24,4 +21,6 @@ export class Employee {
   @Column({ type: 'date' })
   birthday!: Date;
 
+  @Column({type: 'varchar',length: 255,nullable: true,})
+  image?: string;
 }
